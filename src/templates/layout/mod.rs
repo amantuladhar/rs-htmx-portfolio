@@ -9,9 +9,12 @@ pub fn RootLayout(children: Elements) -> Component {
             <head>
                 <title>Portfolio</title>
                 <link href="/css/output.css" rel="stylesheet" />
+                <script defer src="https://unpkg.com/htmx.org@1.9.12"></script>
             </head>
             <body>
-                {children}
+                <main class="min-w-[100dvh] p-6">
+                    {children}
+                </main>
             </body>
         </html>
     }
