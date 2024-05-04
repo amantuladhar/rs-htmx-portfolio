@@ -1,0 +1,1 @@
+- pnpx tailwindcss -i ./src/templates/index.css -o ./public/css/output.css --watch
