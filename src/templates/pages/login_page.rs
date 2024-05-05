@@ -24,7 +24,7 @@ pub async fn login_page() -> Html<String> {
             <Card props=[Class("max-w-[600px] m-auto w-[80%]"), HxExt("response-targets")]>
                 <form hx-post="/login" class="[&>*]:flex [&>*]:flex-col flex flex-col gap-2"
                         hx-swap="innerHTML transition:true"
-                        hx-target-error="#error">
+                        hx-target-error="#login-error-section">
                     <div>
                         <h2 class="font-bold text-4xl">Login</h2>
                     </div>
@@ -44,7 +44,7 @@ pub async fn login_page() -> Html<String> {
                     <div>
                         <Button props=[Varient(ButtonVarient::Secondary), Type("submit")]>Login</Button>
                     </div>
-                    <div id="error">
+                    <div id="login-error-section">
                     </div>
                 </form>
             </Card>
