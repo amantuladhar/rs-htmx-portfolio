@@ -18,6 +18,7 @@ pub struct ButtonProps<'a> {
     hx_post: Option<&'a str>,
     hx_swap: Option<&'a str>,
     hx_target: Option<&'a str>,
+    hx_push_url: Option<&'a str>,
 }
 
 pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
@@ -37,6 +38,7 @@ pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
                     hx-get={props.hx_get}
                     hx-swap={props.hx_swap}
                     hx-target={props.hx_target}
+                    hx-push-url={props.hx_push_url}
                     class={format!(r#"{varient_border} bg-white px-3 py-2
                         transition-transform hover:translate-x-[5px] hover:translate-y-[-5px]
                         {}"#, props.class)}>
@@ -60,6 +62,7 @@ impl<'a> IntoButtonProps for Vec<Attrs<'a, ButtonVarient>> {
             Attrs::HxGet(value) => props.hx_get = Some(value),
             Attrs::HxSwap(value) => props.hx_swap = Some(value),
             Attrs::HxTarget(value) => props.hx_target = Some(value),
+            Attrs::HxPushUrl(value) => props.hx_push_url = Some(value),
             #[allow(unreachable_patterns)]
             _ => {}
         });

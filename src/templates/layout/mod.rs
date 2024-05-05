@@ -28,10 +28,13 @@ pub fn RootLayout(children: Elements) -> Component {
 
 pub fn NavBar() -> Component {
     html! {
-        <nav class="bg-white shadow-[0_1px_0px_1px_black] px-2 py-2">
-            <ul class="flex flex-row gap-2">
-                <NavItem path="/home">Home</NavItem>
+        <nav class="flex flex-row justify-between bg-white shadow-[0_1px_0px_1px_black] px-2 py-2 [&>*]:flex [&>*]:flex-row] [&>*]:gap-2">
+            <ul class="left-nav">
+                <NavItem path="/">Home</NavItem>
                 <NavItem path="/about">About</NavItem>
+            </ul>
+            <ul class="right-nav">
+                <NavItem path="/login">Login</NavItem>
             </ul>
         </nav>
     }
@@ -42,8 +45,9 @@ pub fn NavItem(path: &str, children: Elements) -> Component {
         <li>
             <Button props=vec![
                         Varient(Ghost),
-                        HxSwap("innerHTML"),
-                        HxTarget("#main-body"),
+                        HxSwap("innerHTML transition:true"),
+                        HxTarget("body"),
+                        HxPushUrl("true"),
                         HxGet(path)]>
                 {children}
             </Button>

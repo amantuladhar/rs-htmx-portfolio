@@ -5,7 +5,7 @@ use axum::{
     Router,
 };
 use shtml::{html, Component};
-use templates::pages::root_page::root_page;
+use templates::pages::{about_page::about_page, root_page::root_page};
 use tower_http::services::ServeDir;
 
 mod templates;
@@ -15,6 +15,7 @@ async fn main() {
     let app = Router::new()
         .nest_service("/css", ServeDir::new("public/css"))
         .route("/", get(root_page))
+        .route("/about", get(about_page))
         .route("/clicked", post(clicked_path));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
