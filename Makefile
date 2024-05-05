@@ -3,6 +3,8 @@ dev-watch:
 dev:
 	cargo run
 css:
-	pnpx tailwindcss -i ./src/templates/index.css -o ./public/css/output.css
+	pnpx tailwindcss -i ./src/templates/index.css -o ./public/css/styles.css
 css-watch:
-	pnpx tailwindcss -i ./src/templates/index.css -o ./public/css/output.css --watch
+	pnpx tailwindcss -i ./src/templates/index.css -o ./public/css/styles.css --watch
+build-release:css
+	cargo build --release
