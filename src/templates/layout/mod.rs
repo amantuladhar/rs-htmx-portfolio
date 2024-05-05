@@ -4,7 +4,7 @@ use shtml::{html, Component, Elements, Render};
 
 use crate::templates::{
     attributes::Attrs::*,
-    components::button::{Button, ButtonVarient::*},
+    components::link::{Link, LinkVarient},
 };
 
 pub fn RootLayout(children: Elements) -> Component {
@@ -28,7 +28,7 @@ pub fn RootLayout(children: Elements) -> Component {
 
 pub fn NavBar() -> Component {
     html! {
-        <nav class="flex flex-row justify-between bg-white shadow-[0_1px_0px_1px_black] px-2 py-2 [&>*]:flex [&>*]:flex-row] [&>*]:gap-2">
+        <nav class="flex flex-row justify-between bg-white shadow-[0_1px_0px_1px_black] px-2 py-3 [&>*]:flex [&>*]:flex-row] [&>*]:gap-2">
             <ul class="left-nav">
                 <NavItem path="/">Home</NavItem>
                 <NavItem path="/about">About</NavItem>
@@ -43,14 +43,15 @@ pub fn NavBar() -> Component {
 pub fn NavItem(path: &str, children: Elements) -> Component {
     html! {
         <li>
-            <Button props=vec![
-                        Varient(Ghost),
+            <Link props=vec![
+                        Class("block"),
+                        Varient(LinkVarient::Default),
                         HxSwap("innerHTML transition:true"),
                         HxTarget("body"),
                         HxPushUrl("true"),
                         HxGet(path)]>
                 {children}
-            </Button>
+            </Link>
         </li>
     }
 }
