@@ -21,6 +21,7 @@ pub struct ButtonProps<'a> {
     hx_swap: Option<&'a str>,
     hx_target: Option<&'a str>,
     hx_push_url: Option<&'a str>,
+    button_type: Option<&'a str>,
 }
 
 pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
@@ -47,6 +48,7 @@ pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
                     hx-swap={props.hx_swap}
                     hx-target={props.hx_target}
                     hx-push-url={props.hx_push_url}
+                    type={props.button_type}
                     class={format!(r#"{varient_border} flex-1 {varient_btn_bg} px-3 py-2
                         transition-transform hover:translate-x-[5px] hover:translate-y-[-5px]
                         {}"#, props.class)}>
@@ -66,6 +68,7 @@ impl<'a, const SIZE: usize> IntoButtonProps for [Attrs<'a, ButtonVarient>; SIZE]
         self.iter().for_each(|attr| match *attr {
             Attrs::Varient(value) => props.varient = value,
             Attrs::Class(value) => props.class = value,
+            Attrs::Type(value) => props.button_type = Some(value),
             Attrs::HxPost(value) => props.hx_post = Some(value),
             Attrs::HxGet(value) => props.hx_get = Some(value),
             Attrs::HxSwap(value) => props.hx_swap = Some(value),

@@ -6,7 +6,11 @@ use axum::{
 };
 use rust_embed::RustEmbed;
 use shtml::{html, Component};
-use templates::pages::{about_page::about_page, login_page::login_page, root_page::root_page};
+use templates::pages::{
+    about_page::about_page,
+    login_page::{login_page, submit_login},
+    root_page::root_page,
+};
 
 mod templates;
 
@@ -20,8 +24,8 @@ async fn main() {
         .route("/", get(root_page))
         .route("/about", get(about_page))
         .route("/login", get(login_page))
-        .route("/public/*file", get(static_handler))
-        .route("/clicked", post(clicked_path));
+        .route("/login", post(submit_login))
+        .route("/public/*file", get(static_handler));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
@@ -55,13 +59,4 @@ where
             None => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
         }
     }
-}
-async fn clicked_path() -> impl IntoResponse {
-    let html = html! {
-        <div class="text-3xl bg-green-500">Returned from server</div>
-    }
-    .to_string();
-    let mut headers = HeaderMap::new();
-    headers.insert(header::SET_COOKIE, "NAME=AMAN".parse().unwrap());
-    (headers, Html(html))
 }

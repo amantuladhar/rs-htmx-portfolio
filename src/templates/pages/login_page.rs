@@ -1,4 +1,9 @@
-use axum::response::Html;
+use axum::{
+    http::{HeaderMap, HeaderValue, StatusCode},
+    response::{Html, IntoResponse},
+    Form,
+};
+use serde::Deserialize;
 use shtml::{html, Component, Render};
 
 use crate::templates::{
@@ -12,12 +17,14 @@ use crate::templates::{
 };
 
 pub async fn login_page() -> Html<String> {
-    let username_id = "login-username";
-    let password_id = "login-password";
+    let username_id = "login_username";
+    let password_id = "login_password";
     let page = html! {
         <RootLayout>
-            <Card class="max-w-[600px] m-auto w-[80%]">
-                <form method="POST" action="login" class="[&>*]:flex [&>*]:flex-col flex flex-col gap-2">
+            <Card props=[Class("max-w-[600px] m-auto w-[80%]"), HxExt("response-targets")]>
+                <form hx-post="/login" class="[&>*]:flex [&>*]:flex-col flex flex-col gap-2"
+                        hx-swap="innerHTML transition:true"
+                        hx-target-error="#error">
                     <div>
                         <h2 class="font-bold text-4xl">Login</h2>
                     </div>
@@ -35,11 +42,32 @@ pub async fn login_page() -> Html<String> {
                             ]/>
                     </div>
                     <div>
-                        <Button props=[Varient(ButtonVarient::Secondary)]>Login</Button>
+                        <Button props=[Varient(ButtonVarient::Secondary), Type("submit")]>Login</Button>
+                    </div>
+                    <div id="error">
                     </div>
                 </form>
             </Card>
         </RootLayout>
     };
     Html(page.to_string())
+}
+
+#[derive(Deserialize)]
+pub struct LoginReqBody {
+    login_username: String,
+    login_password: String,
+}
+
+pub async fn submit_login(Form(login): Form<LoginReqBody>) -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    if login.login_username == "fail" {
+        let page = html! {
+            <h2>FAIL Username = {login.login_username}</h2>
+            <h2>FAIL Password = {login.login_password}</h2>
+        };
+        return (StatusCode::UNAUTHORIZED, headers, Html(page.to_string()));
+    };
+    headers.insert("hx-redirect", "/".parse().unwrap());
+    (StatusCode::OK, headers, Html("".to_string()))
 }
