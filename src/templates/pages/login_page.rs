@@ -1,5 +1,5 @@
 use axum::{
-    http::{HeaderMap, HeaderValue, StatusCode},
+    http::{HeaderMap, StatusCode},
     response::{Html, IntoResponse},
     Form,
 };

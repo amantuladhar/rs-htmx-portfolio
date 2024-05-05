@@ -43,7 +43,8 @@ pub fn NavItem(path: &str, children: Elements) -> Component {
         <li>
             <Link props=[Class("block"),
                         HxSwap("innerHTML transition:true"),
-                        HxTarget("body"),
+                        HxTarget("main"),
+                        HxSelect("main"),
                         HxPushUrl("true"),
                         HxGet(path)]>
                 {children}

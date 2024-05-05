@@ -1,11 +1,10 @@
 use axum::{
-    http::{header, HeaderMap, StatusCode, Uri},
-    response::{Html, IntoResponse, Response},
+    http::{header, StatusCode, Uri},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Router,
 };
 use rust_embed::RustEmbed;
-use shtml::{html, Component};
 use templates::pages::{
     about_page::about_page,
     login_page::{login_page, submit_login},

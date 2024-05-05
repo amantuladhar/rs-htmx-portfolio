@@ -12,6 +12,7 @@ pub struct LinkProps<'a> {
     hx_swap: Option<&'a str>,
     hx_target: Option<&'a str>,
     hx_push_url: Option<&'a str>,
+    hx_select: Option<&'a str>,
 }
 
 pub fn Link(props: impl IntoLinkProps, children: Elements) -> Component {
@@ -23,6 +24,7 @@ pub fn Link(props: impl IntoLinkProps, children: Elements) -> Component {
                 hx-swap={props.hx_swap}
                 hx-target={props.hx_target}
                 hx-push-url={props.hx_push_url}
+                hx-select={props.hx_select}
                 class={format!(r#"border border-white hover:border-black bg-white px-3 py-2
                         transition-transform hover:translate-x-[5px] hover:translate-y-[-5px]
                         {}"#, props.class)}>
@@ -46,6 +48,7 @@ impl<'a, const SIZE: usize> IntoLinkProps for [Attrs<'a, ()>; SIZE] {
             Attrs::HxSwap(value) => props.hx_swap = Some(value),
             Attrs::HxTarget(value) => props.hx_target = Some(value),
             Attrs::HxPushUrl(value) => props.hx_push_url = Some(value),
+            Attrs::HxSelect(value) => props.hx_select = Some(value),
             #[allow(unreachable_patterns)]
             _ => {}
         });
