@@ -610,7 +610,7 @@ dependencies = [
 [[package]]
 name = "shtml"
 version = "0.2.0"
-source = "git+https://github.com/swlkr/shtml#8d784dda3dffaccafcf5e483d489894af006de85"
+source = "git+https://github.com/amantuladhar/shtml?branch=optional-attr#92abda0f120c7b312c723196f509b97b2e017229"
 dependencies = [
  "itoa",
  "ryu",
@@ -620,7 +620,7 @@ dependencies = [
 [[package]]
 name = "shtml_macros"
 version = "0.2.0"
-source = "git+https://github.com/swlkr/shtml#8d784dda3dffaccafcf5e483d489894af006de85"
+source = "git+https://github.com/amantuladhar/shtml?branch=optional-attr#92abda0f120c7b312c723196f509b97b2e017229"
 dependencies = [
  "proc-macro2",
  "quote",
