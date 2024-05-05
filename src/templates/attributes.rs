@@ -1,6 +1,7 @@
 pub enum Attrs<'a, V> {
     Varient(V),
     Class(&'a str),
+    Placeholder(&'a str),
     HxPost(&'a str),
     HxGet(&'a str),
     HxSwap(&'a str),

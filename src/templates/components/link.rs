@@ -1,18 +1,16 @@
-#![allow(non_snake_case, unused)]
+#![allow(non_snake_case)]
 
 use shtml::{html, Component, Elements, Render};
 
 use crate::templates::attributes::Attrs;
 
 #[derive(Clone, Copy)]
-pub enum ButtonVarient {
+pub enum LinkVarient {
     Default,
-    Danger,
-    Ghost,
 }
 #[derive(Default)]
-pub struct ButtonProps<'a> {
-    varient: ButtonVarient,
+pub struct LinkProps<'a> {
+    varient: LinkVarient,
     class: &'a str,
     hx_get: Option<&'a str>,
     hx_post: Option<&'a str>,
@@ -21,40 +19,38 @@ pub struct ButtonProps<'a> {
     hx_push_url: Option<&'a str>,
 }
 
-pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
-    use self::ButtonVarient::*;
-    let props: ButtonProps = props.into_props();
+pub fn Link(props: impl IntoLinkProps, children: Elements) -> Component {
+    use self::LinkVarient::*;
+    let props: LinkProps = props.into_props();
     let varient_bg = match props.varient {
-        Default | Ghost => "bg-black",
-        Danger => "bg-red-400",
+        Default => "bg-black",
     };
     let varient_border = match props.varient {
-        Default | Danger => "border border-black",
-        Ghost => "border border-white hover:border-black",
+        Default => "border border-white hover:border-black",
     };
     html! {
         <div class={format!("inline-block {varient_bg}")}>
-            <button hx-post={props.hx_post}
-                    hx-get={props.hx_get}
-                    hx-swap={props.hx_swap}
-                    hx-target={props.hx_target}
-                    hx-push-url={props.hx_push_url}
-                    class={format!(r#"{varient_border} bg-white px-3 py-2
+            <a  hx-post={props.hx_post}
+                hx-get={props.hx_get}
+                hx-swap={props.hx_swap}
+                hx-target={props.hx_target}
+                hx-push-url={props.hx_push_url}
+                class={format!(r#"{varient_border} bg-white px-3 py-2
                         transition-transform hover:translate-x-[5px] hover:translate-y-[-5px]
                         {}"#, props.class)}>
                  {children}
-             </button>
+             </a>
         </div>
     }
 }
 
-pub trait IntoButtonProps {
-    fn into_props(&self) -> ButtonProps;
+pub trait IntoLinkProps {
+    fn into_props(&self) -> LinkProps;
 }
 
-impl<'a> IntoButtonProps for Vec<Attrs<'a, ButtonVarient>> {
-    fn into_props(&self) -> ButtonProps {
-        let mut props = ButtonProps::default();
+impl<'a> IntoLinkProps for Vec<Attrs<'a, LinkVarient>> {
+    fn into_props(&self) -> LinkProps {
+        let mut props = LinkProps::default();
         self.iter().for_each(|attr| match *attr {
             Attrs::Varient(value) => props.varient = value,
             Attrs::Class(value) => props.class = value,
@@ -70,8 +66,8 @@ impl<'a> IntoButtonProps for Vec<Attrs<'a, ButtonVarient>> {
     }
 }
 
-impl Default for ButtonVarient {
+impl Default for LinkVarient {
     fn default() -> Self {
-        ButtonVarient::Default
+        LinkVarient::Default
     }
 }

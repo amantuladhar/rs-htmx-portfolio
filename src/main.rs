@@ -6,8 +6,7 @@ use axum::{
 };
 use rust_embed::RustEmbed;
 use shtml::{html, Component};
-use templates::pages::{about_page::about_page, root_page::root_page};
-use tower_http::services::ServeDir;
+use templates::pages::{about_page::about_page, login_page::login_page, root_page::root_page};
 
 mod templates;
 
@@ -18,14 +17,15 @@ struct Asset;
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        // .nest_service("/css", ServeDir::new("public/css"))
         .route("/", get(root_page))
         .route("/about", get(about_page))
+        .route("/login", get(login_page))
         .route("/public/*file", get(static_handler))
         .route("/clicked", post(clicked_path));
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
+
 // We use a wildcard matcher ("/dist/*file") to match against everything
 // within our defined assets directory. This is the directory on our Asset
 // struct below, where folder = "examples/public/".
