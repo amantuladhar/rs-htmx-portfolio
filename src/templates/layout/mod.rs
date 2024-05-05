@@ -12,6 +12,7 @@ pub fn RootLayout(children: Elements) -> Component {
                 <title>Portfolio</title>
                 <link href="/public/css/styles.css" rel="stylesheet" />
                 <script defer src="https://unpkg.com/htmx.org@1.9.12"></script>
+                <script defer src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
             </head>
             <body>
                 <NavBar/>
