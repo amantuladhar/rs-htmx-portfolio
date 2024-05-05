@@ -13,7 +13,6 @@ pub async fn root_page() -> Html<String> {
         <RootLayout>
           <Button props=vec![Class("text-5xl"),
                 Varient(ButtonVarient::Danger),
-                HxPost("/clicked"),
                 HxSwap("innerHTML"),
                 HxTarget("#swapHere")
                 ]>My Custom Button</Button>
