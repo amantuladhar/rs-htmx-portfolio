@@ -13,7 +13,7 @@ pub fn RootLayout(children: Elements) -> Component {
         <html lang="en">
             <head>
                 <title>Portfolio</title>
-                <link href="/css/output.css" rel="stylesheet" />
+                <link href="/public/css/styles.css" rel="stylesheet" />
                 <script defer src="https://unpkg.com/htmx.org@1.9.12"></script>
             </head>
             <body>
