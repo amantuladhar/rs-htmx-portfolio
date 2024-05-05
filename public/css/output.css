@@ -574,6 +574,10 @@ video {
   flex-direction: column;
 }
 
+.justify-between {
+  justify-content: space-between;
+}
+
 .gap-2 {
   gap: 0.5rem;
 }
@@ -679,6 +683,10 @@ video {
   transition-duration: 150ms;
 }
 
+.\*\:flex-row > * {
+  flex-direction: row;
+}
+
 .hover\:translate-x-\[5px\]:hover {
   --tw-translate-x: 5px;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -696,4 +704,12 @@ video {
 .hover\:border-black:hover {
   --tw-border-opacity: 1;
   border-color: rgb(0 0 0 / var(--tw-border-opacity));
+}
+
+.\[\&\>\*\]\:flex>* {
+  display: flex;
+}
+
+.\[\&\>\*\]\:gap-2>* {
+  gap: 0.5rem;
 }

@@ -5,4 +5,5 @@ pub enum Attrs<'a, V> {
     HxGet(&'a str),
     HxSwap(&'a str),
     HxTarget(&'a str),
+    HxPushUrl(&'a str),
 }
