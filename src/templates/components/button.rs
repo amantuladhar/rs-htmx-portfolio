@@ -7,9 +7,11 @@ use crate::templates::attributes::Attrs;
 #[derive(Clone, Copy)]
 pub enum ButtonVarient {
     Default,
+    Secondary,
     Danger,
     Ghost,
 }
+
 #[derive(Default)]
 pub struct ButtonProps<'a> {
     varient: ButtonVarient,
@@ -26,20 +28,26 @@ pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
     let props: ButtonProps = props.into_props();
     let varient_bg = match props.varient {
         Default | Ghost => "bg-black",
+        Secondary => "bg-gray-500",
         Danger => "bg-red-400",
     };
     let varient_border = match props.varient {
         Default | Danger => "border border-black",
+        Secondary => "border border-gray-400",
         Ghost => "border border-white hover:border-black",
     };
+    let varient_btn_bg = match props.varient {
+        Default | Danger | Ghost => "bg-white text-black",
+        Secondary => "bg-black text-white",
+    };
     html! {
-        <div class={format!("inline-block {varient_bg}")}>
+        <div class={format!("inline-flex justify-stretch {varient_bg}")}>
             <button hx-post={props.hx_post}
                     hx-get={props.hx_get}
                     hx-swap={props.hx_swap}
                     hx-target={props.hx_target}
                     hx-push-url={props.hx_push_url}
-                    class={format!(r#"{varient_border} bg-white px-3 py-2
+                    class={format!(r#"{varient_border} flex-1 {varient_btn_bg} px-3 py-2
                         transition-transform hover:translate-x-[5px] hover:translate-y-[-5px]
                         {}"#, props.class)}>
                  {children}
@@ -52,7 +60,7 @@ pub trait IntoButtonProps {
     fn into_props(&self) -> ButtonProps;
 }
 
-impl<'a> IntoButtonProps for Vec<Attrs<'a, ButtonVarient>> {
+impl<'a, const SIZE: usize> IntoButtonProps for [Attrs<'a, ButtonVarient>; SIZE] {
     fn into_props(&self) -> ButtonProps {
         let mut props = ButtonProps::default();
         self.iter().for_each(|attr| match *attr {
