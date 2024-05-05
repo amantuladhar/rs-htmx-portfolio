@@ -2,10 +2,7 @@
 
 use shtml::{html, Component, Elements, Render};
 
-use crate::templates::{
-    attributes::Attrs::*,
-    components::link::{Link, LinkVarient},
-};
+use crate::templates::{attributes::Attrs::*, components::link::Link};
 
 pub fn RootLayout(children: Elements) -> Component {
     html! {
@@ -18,7 +15,7 @@ pub fn RootLayout(children: Elements) -> Component {
             </head>
             <body>
                 <NavBar/>
-                <main id="main-body" class="min-w-[100dvh] p-6">
+                <main id="main-body" class="p-6">
                     {children}
                 </main>
             </body>
@@ -43,9 +40,7 @@ pub fn NavBar() -> Component {
 pub fn NavItem(path: &str, children: Elements) -> Component {
     html! {
         <li>
-            <Link props=vec![
-                        Class("block"),
-                        Varient(LinkVarient::Default),
+            <Link props=[Class("block"),
                         HxSwap("innerHTML transition:true"),
                         HxTarget("body"),
                         HxPushUrl("true"),
