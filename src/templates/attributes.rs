@@ -2,6 +2,7 @@ pub enum Attrs<'a, V> {
     Varient(V),
     Class(&'a str),
     Placeholder(&'a str),
+    Required(&'a str),
     Name(&'a str),
     Id(&'a str),
     Type(&'a str),
