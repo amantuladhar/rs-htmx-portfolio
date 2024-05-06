@@ -79,12 +79,36 @@ pub struct SignupRes {
     signup_password: String,
 }
 
-#[debug_handler]
+// #[debug_handler]
 pub async fn signup_post_handler(
     State(pool): State<PgPool>,
     Form(signup): Form<SignupRes>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    validate_sign_up_form_input(&signup)?;
+    let record = sqlx::query!(
+        "INSERT INTO rs_portfolio_user (username, password) VALUES ($1, $2) RETURNING id",
+        signup.signup_username,
+        signup.signup_password
+    )
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
     let mut headers = HeaderMap::new();
+    headers.insert("hx-redirect", "/".parse().unwrap());
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+    headers.insert(
+        "Set-Cookie",
+        format!(
+            "APP=TOKEN-ID-{}; Secure; HttpOnly; SameSite=Strict",
+            record.id
+        )
+        .parse()
+        .unwrap(),
+    );
+    Ok((StatusCode::OK, headers, Html("".to_string())))
+}
+
+fn validate_sign_up_form_input(signup: &SignupRes) -> Result<(), (StatusCode, String)> {
     let mut error_html = vec![];
     if signup.signup_username.trim() == "" {
         error_html.push(html! {
@@ -101,36 +125,7 @@ pub async fn signup_post_handler(
         });
     }
     if error_html.len() > 0 {
-        return (
-            StatusCode::BAD_REQUEST,
-            headers,
-            Html(html! { error_html }.to_string()),
-        );
+        return Err((StatusCode::BAD_REQUEST, html! { error_html }.to_string()));
     }
-    let id = sqlx::query!(
-        "SELECT id FROM rs_portfolio_user WHERE username = $1 AND password = $2",
-        signup.signup_username,
-        signup.signup_password
-    )
-    .fetch_optional(&pool)
-    .await
-    .map_err(internal_error)
-    .unwrap();
-
-    let Some(record) = id else {
-        return (
-            StatusCode::BAD_REQUEST,
-            headers,
-            Html(html! {<div class="text-red-400">Invalid username or passsword</div>}.to_string()),
-        );
-    };
-    headers.insert("hx-redirect", "/".parse().unwrap());
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-    headers.insert(
-        "Set-Cookie",
-        format!("APP=TOKEN-ID-{}; Secure; HttpOnly", record.id)
-            .parse()
-            .unwrap(),
-    );
-    (StatusCode::OK, headers, Html("".to_string()))
+    Ok(())
 }
