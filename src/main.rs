@@ -1,15 +1,18 @@
-use axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
-use db_config::{setup_db, DbPool};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::get, Router};
+use db_config::setup_db;
 use shtml::{html, Component, Render};
+use sqlx::PgPool;
 use static_file_handler::static_handler;
 use templates::pages::{
     about_page::about_page,
     login_page::{login_page, submit_login},
     root_page::root_page,
+    signup_page::{signup_page, signup_post_handler},
 };
 use utils::setup_log;
 
 mod db_config;
+mod error_handling;
 mod static_file_handler;
 mod templates;
 mod utils;
@@ -24,6 +27,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/", get(root_page))
         .route("/about", get(about_page))
         .route("/login", get(login_page).post(submit_login))
+        .route("/signup", get(signup_page).post(signup_post_handler))
         .route("/test", get(test_get_handler))
         .route("/public/*file", get(static_handler))
         .with_state(pool);
@@ -35,11 +39,11 @@ async fn main() -> anyhow::Result<()> {
 
 pub struct User {
     id: i32,
-    email: String,
+    username: String,
     password: String,
     created_at: chrono::DateTime<chrono::Utc>,
 }
-pub async fn test_get_handler(DbPool(pool): DbPool) -> impl IntoResponse {
+pub async fn test_get_handler(State(pool): State<PgPool>) -> impl IntoResponse {
     let users = sqlx::query_as!(User, "SELECT * FROM rs_portfolio_user")
         .fetch_all(&pool)
         .await
@@ -50,7 +54,7 @@ pub async fn test_get_handler(DbPool(pool): DbPool) -> impl IntoResponse {
                 users
                   .iter()
                   .map(|user| html! {
-                    <div>Test: {user.email.clone()}</div>
+                    <div>Test: {user.username.clone()}</div>
                   })
                   .collect::<Vec<_>>()
             }

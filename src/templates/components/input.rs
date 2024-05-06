@@ -11,6 +11,7 @@ pub struct InputProps<'a> {
     id: Option<&'a str>,
     name: Option<&'a str>,
     input_type: Option<&'a str>,
+    required: Option<&'a str>,
 }
 
 pub fn Input(props: impl IntoInputProps) -> Component {
@@ -21,6 +22,7 @@ pub fn Input(props: impl IntoInputProps) -> Component {
                name={props.name}
                type={props.input_type}
                id={props.id}
+               required={props.required}
         />
     }
 }
@@ -37,6 +39,7 @@ impl<'a, const SIZE: usize> IntoInputProps for [Attrs<'a, ()>; SIZE] {
             Attrs::Id(v) => props.id = Some(v),
             Attrs::Name(v) => props.name = Some(v),
             Attrs::Type(v) => props.input_type = Some(v),
+            Attrs::Required(v) => props.required = Some(v),
             #[allow(unreachable_patterns)]
             _ => {}
         });

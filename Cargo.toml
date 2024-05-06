@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.82"
 async-trait = "0.1.80"
-axum = "0.7.5"
+axum = { version = "0.7.5", features = ["macros"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenvy = "0.15.7"
 mime_guess = "2.0.4"

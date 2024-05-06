@@ -12,6 +12,7 @@ use crate::templates::{
         button::{Button, ButtonVarient},
         card::Card,
         input::Input,
+        link::Link,
     },
     layout::RootLayout,
 };
@@ -43,6 +44,18 @@ pub async fn login_page() -> Html<String> {
                     </div>
                     <div>
                         <Button props=[Varient(ButtonVarient::Secondary), Type("submit")]>Login</Button>
+                    </div>
+                    <div>
+                        <span>"Don't have an account? "
+                            <Link props=[Class("block underline"),
+                                HxGet("/signup"),
+                                HxTarget("#main-body"),
+                                HxSelect("#main-body"),
+                                HxPushUrl("true"),
+                                HxSwap("innerHTML transition:true")]>
+                                Sign Up
+                            </Link>
+                        </span>
                     </div>
                     <div id="login-error-section">
                     </div>

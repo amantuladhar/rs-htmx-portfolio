@@ -1,7 +1,7 @@
 -- Add up migration script here
 CREATE TABLE IF NOT EXISTS rs_portfolio_user (
     id SERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -15,7 +15,7 @@ DO $$
               AND    table_name = 'rs_portfolio_user'
             )
         THEN
-            INSERT INTO rs_portfolio_user (email, password) VALUES ('test@test.com', 'password');
+            INSERT INTO rs_portfolio_user (username, password) VALUES ('user1', 'password');
         END IF;
     END
 $$;
