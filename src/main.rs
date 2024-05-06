@@ -1,61 +1,60 @@
-use axum::{
-    http::{header, StatusCode, Uri},
-    response::{IntoResponse, Response},
-    routing::{get, post},
-    Router,
-};
-use rust_embed::RustEmbed;
+use axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
+use db_config::{setup_db, DbPool};
+use shtml::{html, Component, Render};
+use static_file_handler::static_handler;
 use templates::pages::{
     about_page::about_page,
     login_page::{login_page, submit_login},
     root_page::root_page,
 };
+use utils::setup_log;
 
+mod db_config;
+mod static_file_handler;
 mod templates;
-
-#[derive(RustEmbed)]
-#[folder = "public"]
-struct Asset;
+mod utils;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
+    dotenvy::dotenv().expect("dotenvy setup failed");
+    setup_log();
+    let pool = setup_db().await;
+
     let app = Router::new()
         .route("/", get(root_page))
         .route("/about", get(about_page))
-        .route("/login", get(login_page))
-        .route("/login", post(submit_login))
-        .route("/public/*file", get(static_handler));
+        .route("/login", get(login_page).post(submit_login))
+        .route("/test", get(test_get_handler))
+        .route("/public/*file", get(static_handler))
+        .with_state(pool);
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
+    Ok(())
 }
 
-// We use a wildcard matcher ("/dist/*file") to match against everything
-// within our defined assets directory. This is the directory on our Asset
-// struct below, where folder = "examples/public/".
-async fn static_handler(uri: Uri) -> impl IntoResponse {
-    let mut path = uri.path().trim_start_matches('/').to_string();
-
-    if path.starts_with("public/") {
-        path = path.replace("public/", "");
-    }
-
-    StaticFile(path)
+pub struct User {
+    id: i32,
+    email: String,
+    password: String,
+    created_at: chrono::DateTime<chrono::Utc>,
 }
-pub struct StaticFile<T>(pub T);
-
-impl<T> IntoResponse for StaticFile<T>
-where
-    T: Into<String>,
-{
-    fn into_response(self) -> Response {
-        let path = self.0.into();
-
-        match Asset::get(path.as_str()) {
-            Some(content) => {
-                let mime = mime_guess::from_path(path).first_or_octet_stream();
-                ([(header::CONTENT_TYPE, mime.as_ref())], content.data).into_response()
+pub async fn test_get_handler(DbPool(pool): DbPool) -> impl IntoResponse {
+    let users = sqlx::query_as!(User, "SELECT * FROM rs_portfolio_user")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+    let html = html! {
+        <div>
+            {
+                users
+                  .iter()
+                  .map(|user| html! {
+                    <div>Test: {user.email.clone()}</div>
+                  })
+                  .collect::<Vec<_>>()
             }
-            None => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
-        }
-    }
+        </div>
+    };
+    (StatusCode::OK, html.to_string())
 }
