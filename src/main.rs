@@ -1,4 +1,7 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::get, Router};
+use auth_middleware::auth;
+use axum::{
+    extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
+};
 use db_config::setup_db;
 use shtml::{html, Component, Render};
 use sqlx::PgPool;
@@ -11,6 +14,7 @@ use templates::pages::{
 };
 use utils::setup_log;
 
+mod auth_middleware;
 mod db_config;
 mod error_handling;
 mod static_file_handler;
@@ -30,6 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/signup", get(signup_page).post(signup_post_handler))
         .route("/test", get(test_get_handler))
         .route("/public/*file", get(static_handler))
+        .route_layer(middleware::from_fn_with_state(pool.clone(), auth))
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

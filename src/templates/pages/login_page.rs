@@ -82,5 +82,12 @@ pub async fn submit_login(Form(login): Form<LoginReqBody>) -> impl IntoResponse 
         return (StatusCode::UNAUTHORIZED, headers, Html(page.to_string()));
     };
     headers.insert("hx-redirect", "/".parse().unwrap());
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+    headers.insert(
+        "Set-Cookie",
+        format!("APP=TOKEN-ID-{}; Secure; HttpOnly; SameSite=Strict", "aman")
+            .parse()
+            .unwrap(),
+    );
     (StatusCode::OK, headers, Html("".to_string()))
 }
