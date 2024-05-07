@@ -1,23 +1,21 @@
-use auth_middleware::auth;
+use auth::auth_middleware::auth;
 use axum::{
     extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
 };
-use db_config::setup_db;
+use config::db_config::setup_db;
 use shtml::{html, Component, Render};
 use sqlx::PgPool;
-use static_file_handler::static_handler;
 use templates::pages::{
     about_page::about_page,
-    login_page::{login_page, submit_login},
+    login_page::{login_page, login_post_handler},
     root_page::root_page,
     signup_page::{signup_page, signup_post_handler},
 };
-use utils::setup_log;
+use tower_http::trace::TraceLayer;
+use utils::{setup_log, static_file_handler::static_handler};
 
-mod auth_middleware;
-mod db_config;
-mod error_handling;
-mod static_file_handler;
+mod auth;
+mod config;
 mod templates;
 mod utils;
 
@@ -30,11 +28,12 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/", get(root_page))
         .route("/about", get(about_page))
-        .route("/login", get(login_page).post(submit_login))
+        .route("/login", get(login_page).post(login_post_handler))
         .route("/signup", get(signup_page).post(signup_post_handler))
         .route("/test", get(test_get_handler))
         .route("/public/*file", get(static_handler))
         .route_layer(middleware::from_fn_with_state(pool.clone(), auth))
+        .layer(TraceLayer::new_for_http())
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -58,8 +57,13 @@ pub async fn test_get_handler(State(pool): State<PgPool>) -> impl IntoResponse {
             {
                 users
                   .iter()
-                  .map(|user| html! {
-                    <div>Test: {user.username.clone()}</div>
+                .map(|user| html! {
+                    <ul>
+                        <li>Id: {user.id.clone()}</li>
+                        <li>Username: {user.username.clone()}</li>
+                        <li>Password: {user.password.clone()}</li>
+                        <li>CreatedAt: {user.created_at.clone().to_rfc3339()}</li>
+                    </ul>
                   })
                   .collect::<Vec<_>>()
             }
