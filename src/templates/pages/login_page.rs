@@ -1,4 +1,5 @@
 use axum::{
+    extract::State,
     http::{HeaderMap, StatusCode},
     response::{Html, IntoResponse},
     Form,
@@ -6,15 +7,19 @@ use axum::{
 use serde::Deserialize;
 use shtml::{html, Component, Render};
 
-use crate::templates::{
-    attributes::Attrs::*,
-    components::{
-        button::{Button, ButtonVarient},
-        card::Card,
-        input::Input,
-        link::Link,
+use crate::{
+    auth::{auth_middleware::AUTH_TOKEN_KEY, jwt_token::create_token, password::verify_password},
+    templates::{
+        attributes::Attrs::*,
+        components::{
+            button::{Button, ButtonVarient},
+            card::Card,
+            input::Input,
+            link::Link,
+        },
+        layout::RootLayout,
     },
-    layout::RootLayout,
+    utils::{anyhow_400, anyhow_err, bad_request},
 };
 
 pub async fn login_page() -> Html<String> {
@@ -48,7 +53,7 @@ pub async fn login_page() -> Html<String> {
                     <div>
                         <span>"Don't have an account? "
                             <Link props=[Class("block underline"),
-                                HxGet("/signup"),
+                                HxGet("/login_body"),
                                 HxTarget("#main-body"),
                                 HxSelect("#main-body"),
                                 HxPushUrl("true"),
@@ -72,22 +77,62 @@ pub struct LoginReqBody {
     login_password: String,
 }
 
-pub async fn submit_login(Form(login): Form<LoginReqBody>) -> impl IntoResponse {
+pub async fn login_post_handler(
+    State(pool): State<sqlx::PgPool>,
+    Form(login): Form<LoginReqBody>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    validate_login_form_input(&login);
+    let error_message = "Username or password is invalid".to_string();
+    let db_value = sqlx::query!(
+        "SELECT id, username, password FROM rs_portfolio_user WHERE username = $1",
+        login.login_username
+    )
+    .fetch_optional(&pool)
+    .await
+    .map_err(bad_request)?
+    .ok_or_else(|| anyhow::anyhow!(error_message.clone()))
+    .map_err(|e| bad_request(&*e))?;
+
+    if !verify_password(&db_value.password, &login.login_password).map_err(anyhow_400)? {
+        return Err((StatusCode::BAD_REQUEST, error_message.clone()));
+    }
+    let token = create_token(db_value.id, &db_value.username).map_err(anyhow_err)?;
+
     let mut headers = HeaderMap::new();
-    if login.login_username == "fail" {
-        let page = html! {
-            <h2>FAIL Username = {login.login_username}</h2>
-            <h2>FAIL Password = {login.login_password}</h2>
-        };
-        return (StatusCode::UNAUTHORIZED, headers, Html(page.to_string()));
-    };
     headers.insert("hx-redirect", "/".parse().unwrap());
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
     headers.insert(
         "Set-Cookie",
-        format!("APP=TOKEN-ID-{}; Secure; HttpOnly; SameSite=Strict", "aman")
-            .parse()
-            .unwrap(),
+        format!(
+            "{}={}; Secure; HttpOnly; SameSite=Strict",
+            AUTH_TOKEN_KEY, token
+        )
+        .parse()
+        .unwrap(),
     );
-    (StatusCode::OK, headers, Html("".to_string()))
+    Ok((StatusCode::OK, headers, Html("".to_string())))
+}
+
+fn validate_login_form_input(login: &LoginReqBody) -> Result<(), impl IntoResponse> {
+    let mut error_html = vec![];
+    if login.login_username.trim() == "" {
+        error_html.push(html! {
+            <div class="text-red-400">
+            Username cannot be blank
+            </div>
+        });
+    }
+    if login.login_password.trim() == "" {
+        error_html.push(html! {
+            <div class="text-red-400">
+            Password cannot be blank
+            </div>
+        });
+    }
+    if error_html.len() > 0 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            html! { { error_html } }.to_string(),
+        ));
+    }
+    Ok(())
 }

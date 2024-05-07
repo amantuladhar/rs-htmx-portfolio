@@ -1,5 +1,5 @@
+use anyhow::Context;
 use axum::{
-    debug_handler,
     extract::State,
     http::{HeaderMap, StatusCode},
     response::{Html, IntoResponse},
@@ -10,6 +10,7 @@ use shtml::{html, Component, Render};
 use sqlx::PgPool;
 
 use crate::{
+    auth::{auth_middleware::AUTH_TOKEN_KEY, jwt_token::create_token, password::hash_password},
     templates::{
         attributes::Attrs::*,
         components::{
@@ -20,7 +21,7 @@ use crate::{
         },
         layout::RootLayout,
     },
-    utils::internal_error,
+    utils::{anyhow_err, internal_error},
 };
 
 pub async fn signup_page() -> Html<String> {
@@ -85,22 +86,26 @@ pub async fn signup_post_handler(
     Form(signup): Form<SignupRes>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     validate_sign_up_form_input(&signup)?;
+    let hashed_password =
+        hash_password(&signup.signup_password).map_err(|e| internal_error(&*e))?;
     let record = sqlx::query!(
-        "INSERT INTO rs_portfolio_user (username, password) VALUES ($1, $2) RETURNING id",
+        "INSERT INTO rs_portfolio_user (username, password) VALUES ($1, $2) RETURNING id, username",
         signup.signup_username,
-        signup.signup_password
+        hashed_password.to_string()
     )
     .fetch_one(&pool)
     .await
     .map_err(internal_error)?;
+
+    let token = create_token(record.id, &record.username).map_err(anyhow_err)?;
     let mut headers = HeaderMap::new();
     headers.insert("hx-redirect", "/".parse().unwrap());
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
     headers.insert(
         "Set-Cookie",
         format!(
-            "APP=TOKEN-ID-{}; Secure; HttpOnly; SameSite=Strict",
-            record.id
+            "{}={}; Secure; HttpOnly; SameSite=Strict",
+            AUTH_TOKEN_KEY, token
         )
         .parse()
         .unwrap(),
@@ -110,7 +115,7 @@ pub async fn signup_post_handler(
 
 fn validate_sign_up_form_input(signup: &SignupRes) -> Result<(), (StatusCode, String)> {
     let mut error_html = vec![];
-    if signup.signup_username.trim() == "" {
+    if signup.signup_username.trim() == "" || signup.signup_username == "fail" {
         error_html.push(html! {
             <div class="text-red-400">
             Username cannot be blank
@@ -125,7 +130,10 @@ fn validate_sign_up_form_input(signup: &SignupRes) -> Result<(), (StatusCode, St
         });
     }
     if error_html.len() > 0 {
-        return Err((StatusCode::BAD_REQUEST, html! { error_html }.to_string()));
+        return Err((
+            StatusCode::BAD_REQUEST,
+            html! { { error_html } }.to_string(),
+        ));
     }
     Ok(())
 }

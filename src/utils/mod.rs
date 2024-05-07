@@ -1,6 +1,8 @@
 use axum::http::StatusCode;
 use tracing::{subscriber::set_global_default, Level};
 
+pub mod static_file_handler;
+
 pub fn setup_log() {
     let subscriber = tracing_subscriber::fmt()
         // Use a more compact, abbreviated log format
@@ -20,11 +22,23 @@ pub fn setup_log() {
     set_global_default(subscriber).expect("Unable to set global default for tracing subscriber");
 }
 
-/// Utility function for mapping any error into a `500 Internal Server Error`
-/// response.
+pub fn bad_request<E>(err: E) -> (StatusCode, String)
+where
+    E: std::error::Error,
+{
+    (StatusCode::BAD_REQUEST, err.to_string())
+}
+pub fn anyhow_400(err: anyhow::Error) -> (StatusCode, String) {
+    bad_request(&*err)
+}
+
 pub fn internal_error<E>(err: E) -> (StatusCode, String)
 where
     E: std::error::Error,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+}
+
+pub fn anyhow_err(err: anyhow::Error) -> (StatusCode, String) {
+    internal_error(&*err)
 }

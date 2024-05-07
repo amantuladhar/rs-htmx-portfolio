@@ -6,13 +6,13 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use sqlx::PgPool;
 
-#[derive(Clone)]
-pub struct LoggedInUser {}
+use super::jwt_token::TokenPayload;
+
+pub const AUTH_TOKEN_KEY: &str = "AUTH_TOKEN";
 
 pub async fn auth(
-    State(pool): State<PgPool>,
+    // State(pool): State<PgPool>,
     mut req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
@@ -31,13 +31,13 @@ pub async fn auth(
         })
         .collect::<HashMap<&str, &str>>();
     tracing::info!(?cookies, "Auth token");
-    let auth_header =  cookies.get("TOKEN");
+    let auth_header = cookies.get(AUTH_TOKEN_KEY);
 
-    let auth_header = if let Some(auth_header) = auth_header {
-        auth_header
-    } else {
-        return Err(StatusCode::UNAUTHORIZED);
-    };
+    // let auth_header = if let Some(auth_header) = auth_header {
+    //     auth_header
+    // } else {
+    //     return Err(StatusCode::UNAUTHORIZED);
+    // };
 
     // if let Some(current_user) = authorize_current_user(auth_header).await {
     //     // insert the current user into a request extension so the handler can
@@ -50,7 +50,7 @@ pub async fn auth(
     Ok(next.run(req).await)
 }
 
-async fn authorize_current_user(auth_token: &str) -> Option<LoggedInUser> {
+async fn authorize_current_user(auth_token: &str) -> Option<TokenPayload> {
     todo!();
 }
 
