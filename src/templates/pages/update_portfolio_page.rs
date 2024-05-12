@@ -12,6 +12,7 @@ use crate::{
         layout::RootLayout,
     },
 };
+pub mod edit_experience;
 
 pub async fn update_portfolio_page(
     State(pool): State<sqlx::PgPool>,
@@ -69,7 +70,13 @@ fn ExperienceView(experience: &Experience) -> Component {
             <div class="__date text-gray-500 text-sm">{format!("{} - {}", start_date, end_date)}</div>
             <p>{&experience.description}</p>
             <div class="__footer flex justify-end">
-                <Button props=[]>Edit</Button>
+                <Button props=[
+                    Attrs::HxGet(format!("/experiences/{}", experience.id).as_str()),
+                    Attrs::HxSwap("innerHTML transition:true"),
+                    Attrs::HxTarget("#presentation-body"),
+                    Attrs::HxSelect(".__dialog"),
+                    Attrs::HxPushUrl("true")
+                ]>Edit</Button>
             </div>
             </div>
         </Card>

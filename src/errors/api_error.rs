@@ -2,9 +2,7 @@ use axum::{
     extract::rejection::ExtensionRejection,
     http::{HeaderMap, StatusCode},
     response::{Html, IntoResponse},
-    Json,
 };
-use serde_json::json;
 use shtml::{html, Component, Render};
 use thiserror::Error;
 use tracing::debug;
@@ -50,7 +48,6 @@ impl IntoResponse for ApiError {
                 }
                 .to_string();
                 return (StatusCode::UNAUTHORIZED, header, Html(html)).into_response();
-                // hx-trigger="load, click delay:1s"
             }
         };
     }
