@@ -22,6 +22,7 @@ use utils::{setup_log, static_file_handler::static_handler};
 mod auth;
 mod config;
 mod errors;
+mod repository;
 mod templates;
 mod utils;
 
