@@ -26,7 +26,7 @@ impl Experience {
     pub async fn find_all(pool: &sqlx::PgPool, user: &LoggedInUser) -> Vec<Experience> {
         let experiences = sqlx::query_as!(
             Experience,
-            "SELECT * FROM rs_portfolio_experience WHERE user_id = $1",
+            "SELECT * FROM rs_portfolio_experience WHERE user_id = $1 ORDER BY start_date DESC",
             user.user_id
         )
         .fetch_all(pool)
