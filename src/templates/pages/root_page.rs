@@ -6,9 +6,9 @@ use crate::auth::cookies_and_jwt::LoggedInUser;
 use crate::templates::attributes::Attrs::*;
 use crate::templates::{components::button::Button, layout::RootLayout};
 
-pub async fn root_page(opt_user: Option<Extension<LoggedInUser>>) -> Html<String> {
+pub async fn root_page(user: Option<Extension<LoggedInUser>>) -> Html<String> {
     let html_compnent = html! {
-        <RootLayout>
+        <RootLayout props=[LoggedInUser(user.map(|x| x.0))]>
             <Button props=[HxGet("/test"),
                       HxSwap("innerHTML transition:true"),
                       HxTarget("#swap-here")]>

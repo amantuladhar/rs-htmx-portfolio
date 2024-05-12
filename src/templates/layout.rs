@@ -2,9 +2,19 @@
 
 use shtml::{html, Component, Elements, Render};
 
-use crate::templates::{attributes::Attrs::*, components::link::Link};
+use crate::{
+    auth::cookies_and_jwt::LoggedInUser,
+    templates::{attributes::Attrs::*, components::link::Link},
+};
 
-pub fn RootLayout(children: Elements) -> Component {
+use super::attributes::Attrs;
+
+pub struct RootLayoutProps {
+    logged_in_user: Option<LoggedInUser>,
+}
+
+pub fn RootLayout(props: impl IntoRootLayoutProps, children: Elements) -> Component {
+    let props = props.into_props();
     html! {
         <!DOCTYPE html>
         <html lang="en">
@@ -15,7 +25,7 @@ pub fn RootLayout(children: Elements) -> Component {
                 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.12/ext/response-targets.min.js" integrity="sha512-l6UYjgNtXt4g4Lnl9nr6B54guXLkZLzmXjpO39jZR4ue/xv/O8IpU1HEvUWvE7Z0ZOsigu+2v7/2ldL6J5IljA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
             </head>
             <body>
-                <NavBar/>
+                <NavBar props=[LoggedInUser(props.logged_in_user)]/>
                 <main id="main-body" class="p-6">
                     {children}
                 </main>
@@ -24,7 +34,12 @@ pub fn RootLayout(children: Elements) -> Component {
     }
 }
 
-pub fn NavBar() -> Component {
+pub struct NavBarProps {
+    logged_in_user: Option<LoggedInUser>,
+}
+
+pub fn NavBar(props: impl IntoNavBarProps) -> Component {
+    let props = props.into_props();
     html! {
         <nav class="flex flex-row justify-between bg-white shadow-[0_1px_0px_1px_black] px-2 py-3 [&>*]:flex [&>*]:flex-row] [&>*]:gap-2">
             <ul class="left-nav">
@@ -32,8 +47,22 @@ pub fn NavBar() -> Component {
                 <NavItem path="/about">About</NavItem>
             </ul>
             <ul class="right-nav">
-                <NavItem path="/update-portfolio">Update Portfolio</NavItem>
-                <NavItem path="/login">Login</NavItem>
+                {
+                    props.logged_in_user.map(|user| {
+                        html! {
+                            <NavItem path="/update-portfolio">Update Portfolio</NavItem>
+                            <NavItem path="/logout">Logout</NavItem>
+                            <li class="flex justify-center items-center">
+                                <div class="font-bold">{format!("Hello {}", user.username)}!</div>
+                            </li>
+                        }
+                    })
+                    .unwrap_or_else(|| {
+                        html! {
+                            <NavItem path="/login">Login</NavItem>
+                        }
+                    })
+                }
             </ul>
         </nav>
     }
@@ -51,5 +80,41 @@ pub fn NavItem(path: &str, children: Elements) -> Component {
                 {children}
             </Link>
         </li>
+    }
+}
+
+pub trait IntoRootLayoutProps {
+    fn into_props(&self) -> RootLayoutProps;
+}
+
+impl<'a, const SIZE: usize> IntoRootLayoutProps for [Attrs<'a, ()>; SIZE] {
+    fn into_props(&self) -> RootLayoutProps {
+        let mut props = RootLayoutProps {
+            logged_in_user: None,
+        };
+        self.iter().for_each(|attr| match *attr {
+            Attrs::LoggedInUser(ref value) => props.logged_in_user = value.clone(),
+            #[allow(unreachable_patterns)]
+            _ => {}
+        });
+        props
+    }
+}
+
+pub trait IntoNavBarProps {
+    fn into_props(&self) -> NavBarProps;
+}
+
+impl<'a, const SIZE: usize> IntoNavBarProps for [Attrs<'a, ()>; SIZE] {
+    fn into_props(&self) -> NavBarProps {
+        let mut props = NavBarProps {
+            logged_in_user: None,
+        };
+        self.iter().for_each(|attr| match *attr {
+            Attrs::LoggedInUser(ref value) => props.logged_in_user = value.clone(),
+            #[allow(unreachable_patterns)]
+            _ => {}
+        });
+        props
     }
 }

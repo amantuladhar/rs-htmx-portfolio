@@ -1,4 +1,7 @@
+use crate::auth::cookies_and_jwt::LoggedInUser;
+
 pub enum Attrs<'a, V> {
+    LoggedInUser(Option<LoggedInUser>),
     Varient(V),
     Class(&'a str),
     Placeholder(&'a str),
