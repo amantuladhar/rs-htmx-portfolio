@@ -32,7 +32,10 @@ DO $$ BEGIN
     INSERT INTO
         rs_portfolio_user (username, password)
     VALUES
-        ('user1', '$argon2id$v=19$m=19456,t=2,p=1$Mprq5khdSq5rhCCPe3RcjA$dcFx+GAM7wpjXordwAvJGdxHbn8Gv7lRSrRbxZemimk');
+        (
+            'user1',
+            '$argon2id$v=19$m=19456,t=2,p=1$Mprq5khdSq5rhCCPe3RcjA$dcFx+GAM7wpjXordwAvJGdxHbn8Gv7lRSrRbxZemimk'
+        );
 
 END IF;
 
@@ -49,11 +52,43 @@ DO $$ BEGIN
             AND table_name = 'rs_portfolio_experience'
     ) THEN
     INSERT INTO
-        rs_portfolio_experience ( user_id, title, company, location, start_date, end_date, description )
+        rs_portfolio_experience (
+            user_id,
+            title,
+            company,
+            location,
+            start_date,
+            end_date,
+            description
+        )
     VALUES
-        ( 1, 'Senio Software Engineer', 'Google', 'Mountain View, CA', '2019-01-01', null, 'Worked on the search team.' ),
-        ( 1, 'Intermediate Software Engineer', 'Facebook', 'Menlo Park, CA', '2018-01-01', '2019-01-01', 'Worked on the news feed team.' ),
-        ( 1, 'Junior Software Engineer', 'Microsoft', 'Redmond, WA', '2017-01-01', '2018-01-01', 'Worked on the Windows team.' );
+        (
+            1,
+            'Senio Software Engineer',
+            'Google',
+            'Mountain View, CA',
+            '2019-01-01',
+            null,
+            'Worked on the search team.'
+        ),
+        (
+            1,
+            'Intermediate Software Engineer',
+            'Facebook',
+            'Menlo Park, CA',
+            '2018-01-01',
+            '2019-01-01',
+            'Worked on the news feed team.'
+        ),
+        (
+            1,
+            'Junior Software Engineer',
+            'Microsoft',
+            'Redmond, WA',
+            '2017-01-01',
+            '2018-01-01',
+            'Worked on the Windows team.'
+        );
 
 END IF;
 
