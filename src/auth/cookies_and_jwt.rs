@@ -7,7 +7,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use sha2::Sha256;
 
-use crate::auth::auth_middleware::AUTH_TOKEN_KEY;
+use crate::auth::decode_jwt_token_middleware::AUTH_TOKEN_KEY;
 
 // TODO(Aman): add to env file
 pub const TOKEN_EXPIRY_TIME_IN_SECONDS: i64 = 60;

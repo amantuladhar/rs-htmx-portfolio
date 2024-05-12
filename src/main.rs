@@ -1,15 +1,11 @@
-use auth::{auth_middleware::auth_or_401, cookies_and_jwt::LoggedInUser};
+use auth::{cookies_and_jwt::LoggedInUser, decode_jwt_token_middleware::decode_jwt_token};
 use axum::{
-    extract::{rejection::ExtensionRejection, State},
-    http::StatusCode,
-    middleware,
-    response::IntoResponse,
-    routing::get,
-    Extension, Json, Router,
+    extract::State, http::StatusCode, middleware::from_fn_with_state, response::IntoResponse,
+    routing::get, Extension, Router,
 };
 use axum_extra::extract::WithRejection;
 use config::db_config::setup_db;
-use serde_json::json;
+use errors::api_error::ApiError;
 use shtml::{html, Component, Render};
 use sqlx::PgPool;
 use templates::pages::{
@@ -19,7 +15,6 @@ use templates::pages::{
     signup_page::{signup_page, signup_post_handler},
     update_portfolio_page::update_portfolio_page,
 };
-use thiserror::Error;
 use tower_http::trace::TraceLayer;
 use tracing::debug;
 use utils::{setup_log, static_file_handler::static_handler};
@@ -36,25 +31,21 @@ async fn main() -> anyhow::Result<()> {
     setup_log();
     let pool = setup_db().await;
 
-    let secured_route = Router::new()
-        .route("/about", get(about_page))
-        .route("/test", get(test_get_handler))
-        .route("/update-portfolio", get(update_portfolio_page))
-        .route_layer(middleware::from_fn_with_state(pool.clone(), auth_or_401));
-
     let app = Router::new()
         .route("/", get(root_page))
+        .route("/about", get(about_page))
+        .route("/test", get(test_get_handler))
         .route("/login", get(login_page).post(login_post_handler))
+        .route("/update-portfolio", get(update_portfolio_page))
         .route("/signup", get(signup_page).post(signup_post_handler))
         .route("/public/*file", get(static_handler))
-        .merge(secured_route)
+        .route_layer(from_fn_with_state(pool.clone(), decode_jwt_token))
         .layer(TraceLayer::new_for_http())
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
-}
 }
 
 pub struct User {
