@@ -10,7 +10,7 @@ use sha2::Sha256;
 use crate::auth::decode_jwt_token_middleware::AUTH_TOKEN_KEY;
 
 // TODO(Aman): add to env file
-pub const TOKEN_EXPIRY_TIME_IN_SECONDS: i64 = 60;
+pub const TOKEN_EXPIRY_TIME_IN_SECONDS: i64 = 60 * 60;
 const SECRET: &str = "some-secret";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

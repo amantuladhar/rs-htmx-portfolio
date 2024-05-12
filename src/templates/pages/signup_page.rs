@@ -30,7 +30,7 @@ pub async fn signup_page() -> Html<String> {
     let username_id = "signup_username";
     let password_id = "signup_password";
     let page = html! {
-        <RootLayout>
+        <RootLayout props=[]>
             <Card props=[Class("max-w-[600px] m-auto w-[80%]"), HxExt("response-targets")]>
                 <form hx-post="/signup" class="[&>*]:flex [&>*]:flex-col flex flex-col gap-2"
                         hx-swap="innerHTML transition:true"
