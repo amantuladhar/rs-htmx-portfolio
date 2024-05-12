@@ -10,11 +10,9 @@ use axum_extra::extract::WithRejection;
 use chrono::NaiveDate;
 use serde::Deserialize;
 use shtml::{html, Component, Render};
-use tracing_subscriber::field::debug;
 
 use crate::{
-    auth::cookies_and_jwt::LoggedInUser, errors::api_error::ApiError,
-    repository::experience::Experience, utils::internal_error,
+    auth::cookies_and_jwt::LoggedInUser, errors::api_error::ApiError, utils::internal_error,
 };
 
 #[derive(Deserialize, Debug)]
