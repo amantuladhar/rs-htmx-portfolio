@@ -16,6 +16,7 @@ pub enum ButtonVarient {
 pub struct ButtonProps<'a> {
     varient: ButtonVarient,
     class: &'a str,
+    form: Option<&'a str>,
     hx_get: Option<&'a str>,
     hx_post: Option<&'a str>,
     hx_swap: Option<&'a str>,
@@ -53,6 +54,7 @@ pub fn Button(props: impl IntoButtonProps, children: Elements) -> Component {
                     hx-select={props.hx_select}
                     hx-trigger={props.hx_trigger}
                     type={props.button_type}
+                    form={props.form}
                     class={format!(r#"{varient_border} flex-1 {varient_btn_bg} px-3 py-2
                         transition-transform hover:translate-x-[5px] hover:translate-y-[-5px]
                         {}"#, props.class)}>
@@ -80,6 +82,7 @@ impl<'a, const SIZE: usize> IntoButtonProps for [Attrs<'a, ButtonVarient>; SIZE]
             Attrs::HxPushUrl(value) => props.hx_push_url = Some(value),
             Attrs::HxSelect(value) => props.hx_select = Some(value),
             Attrs::HxTrigger(value) => props.hx_trigger = Some(value),
+            Attrs::Form(value) => props.form = Some(value),
             #[allow(unreachable_patterns)]
             _ => {}
         });

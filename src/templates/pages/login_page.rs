@@ -30,7 +30,7 @@ pub async fn login_page() -> Html<String> {
     let password_id = "login_password";
     let page = html! {
         <RootLayout props=[]>
-            <Card props=[Class("max-w-[600px] m-auto w-[80%]"), HxExt("response-targets")]>
+            <Card props=[Class("max-w-[600px] m-auto w-[80%]")]>
                 <form hx-post="/login" class="[&>*]:flex [&>*]:flex-col flex flex-col gap-2"
                         hx-swap="innerHTML transition:true"
                         hx-target-error="#login-error-section">

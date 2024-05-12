@@ -8,7 +8,7 @@ use crate::templates::{components::button::Button, layout::RootLayout};
 
 pub async fn root_page(user: Option<Extension<LoggedInUser>>) -> Html<String> {
     let html_compnent = html! {
-        <RootLayout props=[LoggedInUser(user.map(|x| x.0))]>
+        <RootLayout props=[LoggedInUser(&user.map(|u| u.0))]>
             <Button props=[HxGet("/test"),
                       HxSwap("innerHTML transition:true"),
                       HxTarget("#swap-here")]>

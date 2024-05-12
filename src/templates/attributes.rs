@@ -1,7 +1,7 @@
 use crate::auth::cookies_and_jwt::LoggedInUser;
 
 pub enum Attrs<'a, V> {
-    LoggedInUser(Option<LoggedInUser>),
+    LoggedInUser(&'a Option<LoggedInUser>),
     Varient(V),
     Class(&'a str),
     Placeholder(&'a str),
@@ -9,6 +9,9 @@ pub enum Attrs<'a, V> {
     Name(&'a str),
     Id(&'a str),
     Type(&'a str),
+    Value(&'a str),
+    #[allow(dead_code)]
+    Form(&'a str),
     #[allow(unused)]
     HxPost(&'a str),
     HxGet(&'a str),
