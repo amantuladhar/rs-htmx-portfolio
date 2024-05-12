@@ -6,8 +6,7 @@ use crate::auth::cookies_and_jwt::LoggedInUser;
 use crate::templates::attributes::Attrs::*;
 use crate::templates::{components::button::Button, layout::RootLayout};
 
-pub async fn root_page(payload: Option<Extension<LoggedInUser>>) -> Html<String> {
-    tracing::debug!("Payload: {:?}", payload);
+pub async fn root_page(opt_user: Option<Extension<LoggedInUser>>) -> Html<String> {
     let html_compnent = html! {
         <RootLayout>
             <Button props=[HxGet("/test"),

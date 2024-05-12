@@ -15,9 +15,6 @@ pub fn hash_password(password: &str) -> anyhow::Result<String> {
 }
 
 pub fn verify_password(hashed_password: &str, password: &str) -> anyhow::Result<bool> {
-    // Verify password against PHC string.
-    // NOTE: hash params from `parsed_hash` are used instead of what is configured in the
-    // `Argon2` instance.
     let parsed_hash =
         PasswordHash::new(hashed_password).map_err(|e| anyhow::anyhow!(e.to_string()))?;
     Ok(Argon2::default()
