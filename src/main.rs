@@ -1,8 +1,15 @@
-use auth::auth_middleware::auth;
+use auth::{auth_middleware::auth_or_401, cookies_and_jwt::LoggedInUser};
 use axum::{
-    extract::State, http::StatusCode, middleware, response::IntoResponse, routing::get, Router,
+    extract::{rejection::ExtensionRejection, State},
+    http::StatusCode,
+    middleware,
+    response::IntoResponse,
+    routing::get,
+    Extension, Json, Router,
 };
+use axum_extra::extract::WithRejection;
 use config::db_config::setup_db;
+use serde_json::json;
 use shtml::{html, Component, Render};
 use sqlx::PgPool;
 use templates::pages::{
@@ -10,12 +17,16 @@ use templates::pages::{
     login_page::{login_page, login_post_handler},
     root_page::root_page,
     signup_page::{signup_page, signup_post_handler},
+    update_portfolio_page::update_portfolio_page,
 };
+use thiserror::Error;
 use tower_http::trace::TraceLayer;
+use tracing::debug;
 use utils::{setup_log, static_file_handler::static_handler};
 
 mod auth;
 mod config;
+mod errors;
 mod templates;
 mod utils;
 
@@ -25,20 +36,25 @@ async fn main() -> anyhow::Result<()> {
     setup_log();
     let pool = setup_db().await;
 
+    let secured_route = Router::new()
+        .route("/about", get(about_page))
+        .route("/test", get(test_get_handler))
+        .route("/update-portfolio", get(update_portfolio_page))
+        .route_layer(middleware::from_fn_with_state(pool.clone(), auth_or_401));
+
     let app = Router::new()
         .route("/", get(root_page))
-        .route("/about", get(about_page))
         .route("/login", get(login_page).post(login_post_handler))
         .route("/signup", get(signup_page).post(signup_post_handler))
-        .route("/test", get(test_get_handler))
         .route("/public/*file", get(static_handler))
-        .route_layer(middleware::from_fn_with_state(pool.clone(), auth))
+        .merge(secured_route)
         .layer(TraceLayer::new_for_http())
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
+}
 }
 
 pub struct User {
@@ -47,7 +63,11 @@ pub struct User {
     password: String,
     created_at: chrono::DateTime<chrono::Utc>,
 }
-pub async fn test_get_handler(State(pool): State<PgPool>) -> impl IntoResponse {
+pub async fn test_get_handler(
+    State(pool): State<PgPool>,
+    WithRejection(Extension(token), _): WithRejection<Extension<LoggedInUser>, ApiError>,
+) -> impl IntoResponse {
+    debug!(?token, "test get handler");
     let users = sqlx::query_as!(User, "SELECT * FROM rs_portfolio_user")
         .fetch_all(&pool)
         .await

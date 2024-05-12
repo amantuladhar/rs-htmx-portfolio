@@ -39,6 +39,6 @@ where
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }
 
-pub fn anyhow_err(err: anyhow::Error) -> (StatusCode, String) {
+pub fn anyhow_500(err: anyhow::Error) -> (StatusCode, String) {
     internal_error(&*err)
 }

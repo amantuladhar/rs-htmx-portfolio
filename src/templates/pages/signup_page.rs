@@ -1,4 +1,3 @@
-use anyhow::Context;
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
@@ -10,7 +9,10 @@ use shtml::{html, Component, Render};
 use sqlx::PgPool;
 
 use crate::{
-    auth::{auth_middleware::AUTH_TOKEN_KEY, jwt_token::create_token, password::hash_password},
+    auth::{
+        cookies_and_jwt::{create_cookie, create_token},
+        password::hash_password,
+    },
     templates::{
         attributes::Attrs::*,
         components::{
@@ -21,7 +23,7 @@ use crate::{
         },
         layout::RootLayout,
     },
-    utils::{anyhow_err, internal_error},
+    utils::{anyhow_500, internal_error},
 };
 
 pub async fn signup_page() -> Html<String> {
@@ -97,19 +99,10 @@ pub async fn signup_post_handler(
     .await
     .map_err(internal_error)?;
 
-    let token = create_token(record.id, &record.username).map_err(anyhow_err)?;
+    let token = create_token(record.id, &record.username).map_err(anyhow_500)?;
     let mut headers = HeaderMap::new();
     headers.insert("hx-redirect", "/".parse().unwrap());
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-    headers.insert(
-        "Set-Cookie",
-        format!(
-            "{}={}; Secure; HttpOnly; SameSite=Strict",
-            AUTH_TOKEN_KEY, token
-        )
-        .parse()
-        .unwrap(),
-    );
+    headers.insert("Set-Cookie", create_cookie(token).parse().unwrap());
     Ok((StatusCode::OK, headers, Html("".to_string())))
 }
 
