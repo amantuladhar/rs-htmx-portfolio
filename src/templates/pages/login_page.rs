@@ -8,7 +8,10 @@ use serde::Deserialize;
 use shtml::{html, Component, Render};
 
 use crate::{
-    auth::{auth_middleware::AUTH_TOKEN_KEY, jwt_token::create_token, password::verify_password},
+    auth::{
+        cookies_and_jwt::{create_cookie, create_token},
+        password::verify_password,
+    },
     templates::{
         attributes::Attrs::*,
         components::{
@@ -19,7 +22,7 @@ use crate::{
         },
         layout::RootLayout,
     },
-    utils::{anyhow_400, anyhow_err, bad_request},
+    utils::{anyhow_400, anyhow_500, bad_request},
 };
 
 pub async fn login_page() -> Html<String> {
@@ -53,7 +56,7 @@ pub async fn login_page() -> Html<String> {
                     <div>
                         <span>"Don't have an account? "
                             <Link props=[Class("block underline"),
-                                HxGet("/login_body"),
+                                HxGet("/signup"),
                                 HxTarget("#main-body"),
                                 HxSelect("#main-body"),
                                 HxPushUrl("true"),
@@ -81,8 +84,8 @@ pub async fn login_post_handler(
     State(pool): State<sqlx::PgPool>,
     Form(login): Form<LoginReqBody>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    validate_login_form_input(&login);
-    let error_message = "Username or password is invalid".to_string();
+    validate_login_form_input(&login)?;
+    let error_message = "username or password is invalid".to_string();
     let db_value = sqlx::query!(
         "SELECT id, username, password FROM rs_portfolio_user WHERE username = $1",
         login.login_username
@@ -96,23 +99,15 @@ pub async fn login_post_handler(
     if !verify_password(&db_value.password, &login.login_password).map_err(anyhow_400)? {
         return Err((StatusCode::BAD_REQUEST, error_message.clone()));
     }
-    let token = create_token(db_value.id, &db_value.username).map_err(anyhow_err)?;
 
+    let token = create_token(db_value.id, &db_value.username).map_err(anyhow_500)?;
     let mut headers = HeaderMap::new();
     headers.insert("hx-redirect", "/".parse().unwrap());
-    headers.insert(
-        "Set-Cookie",
-        format!(
-            "{}={}; Secure; HttpOnly; SameSite=Strict",
-            AUTH_TOKEN_KEY, token
-        )
-        .parse()
-        .unwrap(),
-    );
+    headers.insert("Set-Cookie", create_cookie(token).parse().unwrap());
     Ok((StatusCode::OK, headers, Html("".to_string())))
 }
 
-fn validate_login_form_input(login: &LoginReqBody) -> Result<(), impl IntoResponse> {
+fn validate_login_form_input(login: &LoginReqBody) -> Result<(), (StatusCode, String)> {
     let mut error_html = vec![];
     if login.login_username.trim() == "" {
         error_html.push(html! {
@@ -129,10 +124,8 @@ fn validate_login_form_input(login: &LoginReqBody) -> Result<(), impl IntoRespon
         });
     }
     if error_html.len() > 0 {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            html! { { error_html } }.to_string(),
-        ));
+        let error_html = html! { { error_html } }.to_string();
+        return Err((StatusCode::BAD_REQUEST, error_html));
     }
     Ok(())
 }

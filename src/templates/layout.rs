@@ -32,6 +32,7 @@ pub fn NavBar() -> Component {
                 <NavItem path="/about">About</NavItem>
             </ul>
             <ul class="right-nav">
+                <NavItem path="/update-portfolio">Update Portfolio</NavItem>
                 <NavItem path="/login">Login</NavItem>
             </ul>
         </nav>

@@ -1,21 +1,23 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Request, State},
-    http::{self, StatusCode},
+    body::Body,
+    extract::Request,
+    http::{self, HeaderMap},
     middleware::Next,
-    response::Response,
+    response::{IntoResponse, Response},
 };
+use chrono::Utc;
 
-use super::jwt_token::TokenPayload;
+use crate::auth::cookies_and_jwt::{create_cookie_with_exp_time, decode_token};
 
 pub const AUTH_TOKEN_KEY: &str = "AUTH_TOKEN";
 
-pub async fn auth(
+pub async fn auth_or_401(
     // State(pool): State<PgPool>,
     mut req: Request,
     next: Next,
-) -> Result<Response, StatusCode> {
+) -> Result<Response, impl IntoResponse> {
     // let auth_header = req
     //     .headers()
     //     .get(http::header::AUTHORIZATION)
@@ -30,28 +32,24 @@ pub async fn auth(
             (split[0], split[1])
         })
         .collect::<HashMap<&str, &str>>();
-    tracing::info!(?cookies, "Auth token");
-    let auth_header = cookies.get(AUTH_TOKEN_KEY);
 
-    // let auth_header = if let Some(auth_header) = auth_header {
-    //     auth_header
-    // } else {
-    //     return Err(StatusCode::UNAUTHORIZED);
-    // };
-
-    // if let Some(current_user) = authorize_current_user(auth_header).await {
-    //     // insert the current user into a request extension so the handler can
-    //     // extract it
-    //     req.extensions_mut().insert(current_user);
-    //     Ok(next.run(req).await)
-    // } else {
-    //     Err(StatusCode::UNAUTHORIZED)
-    // }
-    Ok(next.run(req).await)
-}
-
-async fn authorize_current_user(auth_token: &str) -> Option<TokenPayload> {
-    todo!();
+    // let mut header_unauthorized = HeaderMap::new();
+    // header_unauthorized.insert("hx-redirect", "/login".parse().unwrap());
+    // header_unauthorized.insert(
+    //     "Set-Cookie",
+    //     create_cookie_with_exp_time("this-cookie-was-deleted".to_string(), 0)
+    //         .parse()
+    //         .unwrap(),
+    // );
+    if let Some(auth_header) = cookies.get(AUTH_TOKEN_KEY) {
+        if let Ok(token_payload) = decode_token(auth_header) {
+            if token_payload.exp > Utc::now().timestamp() {
+                req.extensions_mut().insert(token_payload);
+            }
+        }
+    }
+    Ok::<Response<Body>, ()>(next.run(req).await)
 }
 
 // Reference: https://docs.rs/axum/latest/axum/middleware/index.html#passing-state-from-middleware-to-handlers
+// Rejection: https://github.com/tokio-rs/axum/blob/main/examples/customize-extractor-error/README.md
