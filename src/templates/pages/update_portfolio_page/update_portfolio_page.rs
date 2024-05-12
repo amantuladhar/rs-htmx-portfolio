@@ -12,7 +12,6 @@ use crate::{
         layout::RootLayout,
     },
 };
-pub mod edit_experience;
 
 pub async fn update_portfolio_page(
     State(pool): State<sqlx::PgPool>,
@@ -20,7 +19,7 @@ pub async fn update_portfolio_page(
 ) -> Html<String> {
     let experiences = Experience::find_all(&pool, &user).await;
     let page = html! {
-    <RootLayout props=[Attrs::LoggedInUser(Some(user))]>
+    <RootLayout props=[Attrs::LoggedInUser(&Some(user))]>
         <div class="flex flex-col gap-2">
             <div class="__experiences">
                 <h2 class="font-bold text-2xl mb-1">Experiences</h2>
@@ -33,12 +32,18 @@ pub async fn update_portfolio_page(
                         })
                         .collect::<Vec<_>>()
                     }
-                    <Button props=[]>Add Experience</Button>
-                    </div>
-                    </div>
-                    <div class="__experiences">
-                    <h2 class="font-bold text-2xl mb-1">Projects</h2>
-                    <div class="grid grid-cols-2 gap-2">
+                    <Button props=[
+                        Attrs::HxGet("/experiences/new"),
+                        Attrs::HxSwap("innerHTML transition:true"),
+                        Attrs::HxTarget("#presentation-body"),
+                        Attrs::HxSelect(".__dialog"),
+                        Attrs::HxPushUrl("true")
+                    ]>Add Experience</Button>
+                </div>
+            </div>
+            <div class="__experiences">
+                <h2 class="font-bold text-2xl mb-1">Projects</h2>
+                <div class="grid grid-cols-2 gap-2">
                     {
                         experiences.iter().map(|experience| {
                             html! {
@@ -66,18 +71,18 @@ fn ExperienceView(experience: &Experience) -> Component {
     html! {
         <Card props=[]>
             <div class="flex h-full flex-col justify-between">
-            <div class="__title font-bold">{format!("{} at {}, {}", &experience.title, &experience.company, &experience.location)}</div>
-            <div class="__date text-gray-500 text-sm">{format!("{} - {}", start_date, end_date)}</div>
-            <p>{&experience.description}</p>
-            <div class="__footer flex justify-end">
-                <Button props=[
-                    Attrs::HxGet(format!("/experiences/{}", experience.id).as_str()),
-                    Attrs::HxSwap("innerHTML transition:true"),
-                    Attrs::HxTarget("#presentation-body"),
-                    Attrs::HxSelect(".__dialog"),
-                    Attrs::HxPushUrl("true")
-                ]>Edit</Button>
-            </div>
+                <div class="__title font-bold">{format!("{} at {}, {}", &experience.title, &experience.company, &experience.location)}</div>
+                <div class="__date text-gray-500 text-sm">{format!("{} - {}", start_date, end_date)}</div>
+                <p>{&experience.description}</p>
+                <div class="__footer flex justify-end">
+                    <Button props=[
+                        Attrs::HxGet(format!("/experiences/{}", experience.id).as_str()),
+                        Attrs::HxSwap("innerHTML transition:true"),
+                        Attrs::HxTarget("#presentation-body"),
+                        Attrs::HxSelect(".__dialog"),
+                        Attrs::HxPushUrl("true")
+                    ]>Edit</Button>
+                </div>
             </div>
         </Card>
     }
