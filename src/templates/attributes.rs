@@ -17,4 +17,5 @@ pub enum Attrs<'a, V> {
     HxPushUrl(&'a str),
     HxExt(&'a str),
     HxSelect(&'a str),
+    HxTrigger(&'a str),
 }

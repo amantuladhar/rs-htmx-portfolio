@@ -1,13 +1,18 @@
 use axum::{
     extract::rejection::ExtensionRejection,
     http::{HeaderMap, StatusCode},
-    response::IntoResponse,
+    response::{Html, IntoResponse},
     Json,
 };
 use serde_json::json;
+use shtml::{html, Component, Render};
 use thiserror::Error;
+use tracing::debug;
 
-use crate::auth::cookies_and_jwt::create_cookie_with_exp_time;
+use crate::{
+    auth::cookies_and_jwt::create_cookie_with_exp_time,
+    templates::{attributes::Attrs, components::button::Button, layout::RootLayout},
+};
 
 #[derive(Debug, Error)]
 pub enum ApiError {
@@ -17,8 +22,9 @@ pub enum ApiError {
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
+        debug!("Got ApiError: {:?}", self);
         let mut header = HeaderMap::new();
-        let (status, message) = match self {
+        match self {
             ApiError::Unauthorized(_) => {
                 header.insert("hx-redirect", "/login".parse().unwrap());
                 header.insert(
@@ -27,10 +33,25 @@ impl IntoResponse for ApiError {
                         .parse()
                         .unwrap(),
                 );
-                (StatusCode::UNAUTHORIZED, self.to_string())
+                let html = html! {
+                    <RootLayout props=[]>
+                        <div class="grid place-items-center gap-5">
+                            <div class="text-red-400"> {self.to_string()} </div>
+                            <div> Redirecting to login page in 5 seconds </div>
+                            <Button props=[Attrs::HxGet("/login"),
+                                        Attrs::HxSwap("outerHTML transition:true"),
+                                        Attrs::HxTarget("#main-body"),
+                                        Attrs::HxSelect("#main-body"),
+                                        Attrs::HxPushUrl("true"),
+                                        Attrs::HxTrigger("load delay:5s, click")
+                                        ]>Login</Button>
+                        </div>
+                    </RootLayout>
+                }
+                .to_string();
+                return (StatusCode::UNAUTHORIZED, header, Html(html)).into_response();
+                // hx-trigger="load, click delay:1s"
             }
         };
-        let payload = json!({ "message": message});
-        (status, header, Json(payload)).into_response()
     }
 }
