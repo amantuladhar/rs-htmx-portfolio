@@ -28,6 +28,7 @@ pub fn RootLayout(props: impl IntoRootLayoutProps, children: Elements) -> Compon
                 <NavBar props=[LoggedInUser(props.logged_in_user)]/>
                 <main id="main-body" class="p-6">
                     {children}
+                <section id="presentation-body"></section>
                 </main>
             </body>
         </html>
