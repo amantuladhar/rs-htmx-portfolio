@@ -34,3 +34,8 @@ tracing-subscriber = "0.3.18"
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3
+
+
+# Reduces the binary size, but not recommeneded because it makes debugging harder
+# [profile.release]
+# strip = "symbols"
