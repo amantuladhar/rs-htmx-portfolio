@@ -25,7 +25,7 @@ pub async fn edit_experience_dialog(
     let experience = Experience::find_one(&pool, &user, experience_id).await;
     let user = Some(user);
     let html = html! {
-        <AddEditExperienceForm user=&user experience=&experience />
+        <AddEditExperienceForm title="Edit Experience" user=&user experience=&experience />
     };
     Html(html.to_string())
 }
@@ -36,13 +36,17 @@ pub async fn add_experience_dialog(
     let experience = Experience::default();
     let user = Some(user);
     let html = html! {
-        <AddEditExperienceForm user=&user experience=&experience />
+        <AddEditExperienceForm title="Add Experience" user=&user experience=&experience />
     };
     Html(html.to_string())
 }
 
 #[allow(non_snake_case)]
-fn AddEditExperienceForm(user: &Option<LoggedInUser>, experience: &Experience) -> Component {
+fn AddEditExperienceForm(
+    title: &str,
+    user: &Option<LoggedInUser>,
+    experience: &Experience,
+) -> Component {
     let actions = html! {
         <Button props=[
             Type("submit"),
@@ -63,7 +67,7 @@ fn AddEditExperienceForm(user: &Option<LoggedInUser>, experience: &Experience) -
     };
     let html = html! {
         <RootLayout props=[LoggedInUser(user)]>
-            <Dialog title="Edit Experience" actions=Some(actions) props=[Class("max-w-[600px] m-auto w-[80%]")]>
+            <Dialog title=title actions=Some(actions) props=[Class("max-w-[600px] m-auto w-[80%]")]>
                 <form id="save_experience_form"
                       hx-post="/update-portfolio"
                       hx-target-error="#experience-form-error-section"

@@ -1,4 +1,7 @@
-use crate::auth::cookies_and_jwt::LoggedInUser;
+use crate::{
+    auth::cookies_and_jwt::LoggedInUser,
+    templates::pages::update_portfolio::experience::edit_experience_post_handler::ExperienceInput,
+};
 
 pub struct Experience {
     pub id: i32,
@@ -13,16 +16,6 @@ pub struct Experience {
 }
 
 impl Experience {
-    #[allow(dead_code)]
-    pub fn formatted_start_date(&self) -> String {
-        Self::format_date(self.start_date)
-    }
-    #[allow(dead_code)]
-    pub fn formatted_end_date(&self) -> String {
-        self.end_date
-            .map(Self::format_date)
-            .unwrap_or("Current".to_string())
-    }
     pub async fn find_all(pool: &sqlx::PgPool, user: &LoggedInUser) -> Vec<Experience> {
         let experiences = sqlx::query_as!(
             Experience,
@@ -49,6 +42,72 @@ impl Experience {
         .await
         .expect("experience to be returned");
         experience
+    }
+
+    pub async fn insert(
+        pool: &sqlx::PgPool,
+        user: &LoggedInUser,
+        experience: &ExperienceInput,
+    ) -> anyhow::Result<()> {
+        if let Some(id) = experience.id.filter(|id| *id > 0) {
+            return Err(anyhow::anyhow!("Experience has id({id}), cannot insert"));
+        };
+        sqlx::query!(
+            r#"
+            INSERT INTO rs_portfolio_experience (title, company, location, start_date, end_date, description, user_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            "#,
+            experience.title,
+            experience.company,
+            experience.location,
+            experience.start_date,
+            experience.end_date,
+            experience.description,
+            user.user_id
+        )
+        .execute(pool)
+        .await
+        .expect("experience to be inserted");
+        Ok(())
+    }
+
+    pub async fn update(
+        pool: &sqlx::PgPool,
+        user: &LoggedInUser,
+        experience: &ExperienceInput,
+    ) -> anyhow::Result<()> {
+        let Some(id) = experience.id.filter(|id| *id > 0) else {
+            return Err(anyhow::anyhow!("Experience must have an id to update"));
+        };
+        sqlx::query!(
+            r#"
+            UPDATE rs_portfolio_experience
+            SET title = $1, company = $2, location = $3, start_date = $4, end_date = $5, description = $6
+            WHERE id = $7 and user_id = $8
+            "#,
+            experience.title,
+            experience.company,
+            experience.location,
+            experience.start_date,
+            experience.end_date,
+            experience.description,
+            id,
+            user.user_id
+        )
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
+
+    #[allow(dead_code)]
+    pub fn formatted_start_date(&self) -> String {
+        Self::format_date(self.start_date)
+    }
+    #[allow(dead_code)]
+    pub fn formatted_end_date(&self) -> String {
+        self.end_date
+            .map(Self::format_date)
+            .unwrap_or("Current".to_string())
     }
     pub fn format_date_edit(date: &chrono::NaiveDate) -> String {
         date.format("%Y-%m-%d").to_string()
