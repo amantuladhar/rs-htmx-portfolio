@@ -43,16 +43,15 @@ pub struct NavBarProps<'a> {
 pub fn NavBar(props: impl IntoNavBarProps) -> Component {
     let props = props.into_props();
     html! {
-        <nav class="flex flex-row justify-between bg-white shadow-[0_1px_0px_1px_black] px-2 py-3 [&>*]:flex [&>*]:flex-row] [&>*]:gap-2">
+        <nav class="sticky top-0 left-0 w-[100dvw] flex flex-row justify-between bg-white shadow-[0_0px_2px_1px_#bbbbbb] px-2 py-3 [&>*]:flex [&>*]:flex-row] [&>*]:gap-2">
             <ul class="left-nav">
                 <NavItem path="/">Home</NavItem>
-                <NavItem path="/about">About</NavItem>
             </ul>
             <ul class="right-nav">
                 {
                     props.logged_in_user.as_ref().map(|user| {
                         html! {
-                            <NavItem path="/update-portfolio">Update Portfolio</NavItem>
+                            <NavItem path="/p/test">View</NavItem>
                             <NavItem path="/logout">Logout</NavItem>
                             <li class="flex justify-center items-center">
                                 <div class="font-bold">{format!("Hello {}", user.username)}!</div>
