@@ -57,7 +57,7 @@ fn AddEditExperienceForm(
             HxPushUrl("true")
         ]>Save</Button>
         <Button props=[
-            HxGet("/update-portfolio"),
+            HxGet("/"),
             HxSwap("outerHTML transition:true"),
             HxTarget("#main-body"),
             HxSelect("#main-body"),
@@ -69,7 +69,7 @@ fn AddEditExperienceForm(
         <RootLayout props=[LoggedInUser(user)]>
             <Dialog title=title actions=Some(actions) props=[Class("max-w-[600px] m-auto w-[80%]")]>
                 <form id="save_experience_form"
-                      hx-post="/update-portfolio"
+                      hx-post="/experiences"
                       hx-target-error="#experience-form-error-section"
                       class="flex h-full flex-col justify-between gap-2 [&>*]:flex [&>*]:flex-col">
                     <input type="hidden" name="id" value=experience.id />

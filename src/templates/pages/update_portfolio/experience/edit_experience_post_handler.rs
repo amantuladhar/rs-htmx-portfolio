@@ -42,7 +42,7 @@ pub async fn edit_experience_post_handler(
             .map_err(anyhow_500)?,
     };
     let mut headers = HeaderMap::new();
-    headers.insert("hx-redirect", "/update-portfolio".parse().unwrap());
+    headers.insert("hx-redirect", "/".parse().unwrap());
     Ok((StatusCode::OK, headers, Html("".to_string())))
 }
 
