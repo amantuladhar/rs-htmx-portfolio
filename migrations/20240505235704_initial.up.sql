@@ -7,16 +7,29 @@ CREATE TABLE IF NOT EXISTS rs_portfolio_user (
 );
 
 CREATE TABLE IF NOT EXISTS rs_portfolio_experience(
-    id serial primary key,
-    user_id integer not null,
-    title varchar(255) not null,
-    company varchar(255) not null,
-    location varchar(255) not null,
-    start_date date not null,
-    end_date date null,
-    description text not null,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    company VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE null,
+    description TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    constraint fk_rs_portfolio_experience_user_id foreign key (user_id) references rs_portfolio_user(id)
+    CONSTRAINT fk_rs_portfolio_experience_user_id FOREIGN KEY (user_id) REFERENCES rs_portfolio_user(id)
+);
+
+CREATE TABLE IF NOT EXISTS rs_portfolio_education(
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    school_name VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE null,
+    description TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT fk_rs_portfolio_education_user_id FOREIGN KEY (user_id) REFERENCES rs_portfolio_user(id)
 );
 
 DO $$ BEGIN
@@ -88,6 +101,41 @@ DO $$ BEGIN
             '2017-01-01',
             '2018-01-01',
             'Worked on the Windows team.'
+        );
+
+END IF;
+
+END $$;
+
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT
+            1
+        FROM
+            information_schema.tables
+        WHERE
+            table_schema = 'public'
+            AND table_name = 'rs_portfolio_education'
+    ) THEN
+    INSERT INTO
+        rs_portfolio_education (
+            user_id,
+            title,
+            school_name,
+            location,
+            start_date,
+            end_date,
+            description
+        )
+    VALUES
+        (
+            1,
+            'Bachelor of Science in Computer Science',
+            'MIT',
+            'US',
+            '2019-01-01',
+            null,
+            'blah blah blah'
         );
 
 END IF;

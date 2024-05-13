@@ -27,7 +27,7 @@ pub struct ExperienceInput {
     pub description: String,
 }
 
-pub async fn update_portfolio_post_handler(
+pub async fn edit_experience_post_handler(
     State(pool): State<sqlx::PgPool>,
     WithRejection(Extension(user), _): WithRejection<Extension<LoggedInUser>, ApiError>,
     Form(experience): Form<ExperienceInput>,

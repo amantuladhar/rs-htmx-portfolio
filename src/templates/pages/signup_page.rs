@@ -91,7 +91,11 @@ pub async fn signup_post_handler(
     let hashed_password =
         hash_password(&signup.signup_password).map_err(|e| internal_error(&*e))?;
     let record = sqlx::query!(
-        "INSERT INTO rs_portfolio_user (username, password) VALUES ($1, $2) RETURNING id, username",
+        r#"
+        INSERT INTO rs_portfolio_user (username, password) 
+        VALUES ($1, $2)
+        RETURNING id, username
+        "#,
         signup.signup_username,
         hashed_password.to_string()
     )

@@ -13,10 +13,12 @@ use templates::pages::{
     login_page::{login_page, login_post_handler},
     root_page::root_page,
     signup_page::{signup_page, signup_post_handler},
-    update_portfolio_page::{
-        edit_experience_dialog::{add_experience_dialog, edit_experience_dialog},
+    update_portfolio::{
+        experience::{
+            edit_experience_dialog::{add_experience_dialog, edit_experience_dialog},
+            edit_experience_post_handler::edit_experience_post_handler,
+        },
         update_portfolio_page::update_portfolio_page,
-        update_portfolio_post_handler::update_portfolio_post_handler,
     },
 };
 use tower_http::trace::TraceLayer;
@@ -43,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/login", get(login_page).post(login_post_handler))
         .route(
             "/update-portfolio",
-            get(update_portfolio_page).post(update_portfolio_post_handler),
+            get(update_portfolio_page).post(edit_experience_post_handler),
         )
         .route("/experiences/:experience_id", get(edit_experience_dialog))
         .route("/experiences/new", get(add_experience_dialog))
