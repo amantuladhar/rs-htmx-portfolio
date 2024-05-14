@@ -5,14 +5,12 @@ use shtml::{html, Component, Render};
 use crate::{
     auth::cookies_and_jwt::LoggedInUser,
     errors::api_error::ApiError,
-    repository::experience::Experience,
+    repository::{education::Education, experience::Experience},
     templates::{
         attributes::Attrs,
-        components::{
-            button::{Button, ButtonVarient},
-            card::Card,
-        },
+        components::button::{Button, ButtonVarient},
         layout::RootLayout,
+        pages::update_portfolio::components::{EducationView, ExperienceView},
     },
 };
 
@@ -21,6 +19,7 @@ pub async fn update_portfolio_page(
     WithRejection(Extension(user), _): WithRejection<Extension<LoggedInUser>, ApiError>,
 ) -> Html<String> {
     let experiences = Experience::find_all(&pool, &user).await;
+    let educations = Education::find_all(&pool, &user).await;
     let page = html! {
     <RootLayout props=[Attrs::LoggedInUser(&Some(user))]>
         <div class="flex flex-col gap-2">
@@ -48,23 +47,23 @@ pub async fn update_portfolio_page(
                 </div>
             </div>
             <hr class="my-5" />
-            <div class="__projects flex flex-col gap-2">
+            <div class="__educations flex flex-col gap-2">
                 <div class="flex sm:flex-row flex-col justify-between">
-                    <h2 class="font-bold text-2xl mb-1">Projects</h2>
+                    <h2 class="font-bold text-2xl mb-1">Educations</h2>
                     <Button props=[
                         Attrs::Varient(ButtonVarient::Secondary),
-                        Attrs::HxGet("/experiences/new"),
+                        Attrs::HxGet("/educations/new"),
                         Attrs::HxSwap("innerHTML transition:true"),
                         Attrs::HxTarget("#presentation-body"),
                         Attrs::HxSelect(".__dialog"),
                         Attrs::HxPushUrl("true")
-                    ]>Add Project</Button>
+                    ]>Add Education</Button>
                 </div>
                 <div class="grid lg:grid-cols-2 grid-cols-1 gap-2">
                     {
-                        experiences.iter().map(|experience| {
+                        educations.iter().map(|education| {
                             html! {
-                                <ExperienceView experience=&experience />
+                                <EducationView education=&education />
                             }
                         })
                         .collect::<Vec<_>>()
@@ -75,31 +74,4 @@ pub async fn update_portfolio_page(
     </RootLayout>
     };
     Html(page.to_string())
-}
-
-#[allow(non_snake_case)]
-fn ExperienceView(experience: &Experience) -> Component {
-    let start_date = experience.start_date.format("%B %Y").to_string();
-    let end_date = experience
-        .end_date
-        .map(|x| x.format("%B %Y").to_string())
-        .unwrap_or("Current".to_string());
-    html! {
-        <Card props=[]>
-            <div class="flex h-full flex-col gap-2">
-                <div class="__title font-bold">{format!("{} at {}, {}", &experience.title, &experience.company, &experience.location)}</div>
-                <div class="__date text-gray-500 text-sm">{format!("{} - {}", start_date, end_date)}</div>
-                <p class="break-words flex-1">{&experience.description}</p>
-                <div class="__footer flex justify-end">
-                    <Button props=[
-                        Attrs::HxGet(format!("/experiences/{}", experience.id).as_str()),
-                        Attrs::HxSwap("innerHTML transition:true"),
-                        Attrs::HxTarget("#presentation-body"),
-                        Attrs::HxSelect(".__dialog"),
-                        Attrs::HxPushUrl("true")
-                    ]>Edit</Button>
-                </div>
-            </div>
-        </Card>
-    }
 }
