@@ -7,7 +7,6 @@ use axum::{
 use config::db_config::setup_db;
 use templates::pages::{
     login_page::{login_page, login_post_handler},
-    root_page::root_page,
     signup_page::{signup_page, signup_post_handler},
     update_portfolio::{
         experience::{
