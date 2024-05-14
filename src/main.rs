@@ -9,6 +9,10 @@ use templates::pages::{
     login_page::{login_page, login_post_handler},
     signup_page::{signup_page, signup_post_handler},
     update_portfolio::{
+        education::{
+            edit_education_dialog::{add_education_dialog, edit_education_dialog},
+            edit_education_post_handler::edit_education_post_handler,
+        },
         experience::{
             edit_experience_dialog::{add_experience_dialog, edit_experience_dialog},
             edit_experience_post_handler::edit_experience_post_handler,
@@ -42,6 +46,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/experiences", post(edit_experience_post_handler))
         .route("/experiences/:experience_id", get(edit_experience_dialog))
         .route("/experiences/new", get(add_experience_dialog))
+        // educations
+        .route("/educations", post(edit_education_post_handler))
+        .route("/educations/:education_id", get(edit_education_dialog))
+        .route("/educations/new", get(add_education_dialog))
         // global routes and middlewares
         .route("/public/*file", get(static_handler))
         .route_layer(from_fn_with_state(pool.clone(), decode_jwt_token))
