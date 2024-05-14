@@ -8,10 +8,7 @@ use serde::Serialize;
 use sha2::Sha256;
 
 use crate::auth::decode_jwt_token_middleware::AUTH_TOKEN_KEY;
-
-// TODO(Aman): add to env file
-pub const TOKEN_EXPIRY_TIME_IN_SECONDS: i64 = 60 * 60;
-const SECRET: &str = "some-secret";
+use crate::utils::env::EnvVars;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LoggedInUser {
@@ -21,9 +18,11 @@ pub struct LoggedInUser {
 }
 
 pub fn create_token(user_id: i32, username: &str) -> anyhow::Result<String> {
-    let key: Hmac<Sha256> = Hmac::new_from_slice(SECRET.as_bytes())?;
+    let secret = EnvVars::token_secret();
+    let exp_second = EnvVars::token_expiry_time_in_seconds();
+    let key: Hmac<Sha256> = Hmac::new_from_slice(secret.as_bytes())?;
     let exp = Utc::now()
-        .checked_add_signed(Duration::seconds(TOKEN_EXPIRY_TIME_IN_SECONDS))
+        .checked_add_signed(Duration::seconds(exp_second))
         .expect("valid timestamp")
         .timestamp();
     let payload = LoggedInUser {
@@ -35,13 +34,15 @@ pub fn create_token(user_id: i32, username: &str) -> anyhow::Result<String> {
 }
 
 pub fn decode_token(token: &str) -> anyhow::Result<LoggedInUser> {
-    let key: Hmac<Sha256> = Hmac::new_from_slice(SECRET.as_bytes())?;
+    let secret = EnvVars::token_secret();
+    let key: Hmac<Sha256> = Hmac::new_from_slice(secret.as_bytes())?;
     let claim: LoggedInUser = token.verify_with_key(&key)?;
     Ok(claim)
 }
 
 pub fn create_cookie(value: String) -> String {
-    create_cookie_with_exp_time(value, TOKEN_EXPIRY_TIME_IN_SECONDS)
+    let exp_time = EnvVars::token_expiry_time_in_seconds();
+    create_cookie_with_exp_time(value, exp_time)
 }
 
 pub fn create_cookie_with_exp_time(value: String, expiry_seconds: i64) -> String {

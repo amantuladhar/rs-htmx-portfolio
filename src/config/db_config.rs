@@ -2,14 +2,14 @@ use std::time::Duration;
 
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-pub async fn setup_db() -> Pool<Postgres> {
-    let db_connection_str =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL environment variable not set");
+use crate::utils::env::EnvVars;
 
+pub async fn setup_db() -> Pool<Postgres> {
+    let db_url = EnvVars::db_url();
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
-        .connect(&db_connection_str)
+        .connect(&db_url)
         .await
         .expect("can't connect to database");
     pool

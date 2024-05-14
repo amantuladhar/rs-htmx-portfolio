@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use tracing::{subscriber::set_global_default, Level};
 
 pub mod app_serde;
+pub mod env;
 pub mod static_file_handler;
 
 pub fn setup_log() {
