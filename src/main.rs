@@ -28,7 +28,7 @@ mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenvy::dotenv().expect("dotenvy setup failed");
+    utils::env::EnvVars::init();
     setup_log();
     let pool = setup_db().await;
 
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/experiences", post(edit_experience_post_handler))
         .route("/experiences/:experience_id", get(edit_experience_dialog))
         .route("/experiences/new", get(add_experience_dialog))
-        // global middlewares
+        // global routes and middlewares
         .route("/public/*file", get(static_handler))
         .route_layer(from_fn_with_state(pool.clone(), decode_jwt_token))
         .layer(TraceLayer::new_for_http())
