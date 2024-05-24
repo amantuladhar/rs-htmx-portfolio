@@ -1,2 +1,4 @@
 /target
 /public/css/styles.css
+.idea/
+.env
