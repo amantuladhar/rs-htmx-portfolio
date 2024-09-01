@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-
 use axum::{
     body::Body,
     extract::Request,
-    http,
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use axum_extra::extract::cookie::CookieJar;
 use chrono::Utc;
 
 use crate::auth::cookies_and_jwt::decode_token;
@@ -18,22 +16,12 @@ pub async fn decode_jwt_token(
     mut req: Request,
     next: Next,
 ) -> Result<Response, impl IntoResponse> {
-    // let auth_header = req
-    //     .headers()
-    //     .get(http::header::AUTHORIZATION)
-    //     .and_then(|header| header.to_str().ok());
-    let cookies = req
-        .headers()
-        .get_all(http::header::COOKIE)
-        .into_iter()
-        .map(|cookie| cookie.to_str().unwrap())
-        .map(|cookie| {
-            let split = cookie.split("=").collect::<Vec<&str>>();
-            (split[0], split[1])
-        })
-        .collect::<HashMap<&str, &str>>();
-    if let Some(auth_header) = cookies.get(AUTH_TOKEN_KEY) {
-        if let Ok(token_payload) = decode_token(auth_header) {
+    let headers = req.headers();
+    let cookies_jar = CookieJar::from_headers(headers);
+    tracing::debug!("cookies_jar: {:?}", cookies_jar);
+    if let Some(auth_header) = cookies_jar.get(AUTH_TOKEN_KEY) {
+        tracing::debug!("auth_header value: {}", auth_header.value());
+        if let Ok(token_payload) = decode_token(auth_header.value()) {
             if token_payload.exp > Utc::now().timestamp() {
                 req.extensions_mut().insert(token_payload);
             }

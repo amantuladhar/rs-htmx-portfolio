@@ -53,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         // global routes and middlewares
         .route("/public/*file", get(static_handler))
         .route_layer(from_fn_with_state(pool.clone(), decode_jwt_token))
-        .layer(TraceLayer::new_for_http())
+        // .layer(TraceLayer::new_for_http())
         .with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

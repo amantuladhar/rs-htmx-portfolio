@@ -2,3 +2,7 @@
 /public/css/styles.css
 .idea/
 .env
+
+# Ignore the folder for now
+# This folder is used to store offline sqlx files.
+.sqlx
